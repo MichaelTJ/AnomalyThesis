@@ -22,11 +22,9 @@ function varargout = untitled1(varargin)
 
 % Edit the above text to modify the response to help untitled1
 
-<<<<<<< HEAD
+
 % Last Modified by GUIDE v2.5 27-Apr-2015 14:01:30
-=======
-% Last Modified by GUIDE v2.5 05-May-2015 08:40:03
->>>>>>> 474b6ba36020c844b45698410ac232fa42c03855
+
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -89,12 +87,7 @@ function Open_Callback(hObject, eventdata, handles)
 % hObject    handle to Open (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-<<<<<<< HEAD
-handles.fileName = uigetfile('*.xlsx')
-[numbers, strings,raw] = xlsread(handles.fileName);
-colNames = raw(1,:);
 
-=======
 handles.fileName = uigetfile('*.xlsx');
 [numbers, strings,raw] = xlsread(handles.fileName);
 colNames = raw(1,:);
@@ -102,24 +95,18 @@ colNames = raw(1,:);
 hs = '<html><font size="4">'; %html start
 he = '</font></html>'; %html end
 cnh = cellfun(@(x)[hs x he],colNames,'uni',false); %with html
->>>>>>> 474b6ba36020c844b45698410ac232fa42c03855
 
 
 %set values on the form page
 set(handles.columnsListBox,'string',colNames);
-<<<<<<< HEAD
-set(handles.uitable2,'Data',raw(2:end,:),'ColumnName',colNames);
-=======
 set(handles.uitable2,'Data',raw(2:end,:),'ColumnName',cnh);
->>>>>>> 474b6ba36020c844b45698410ac232fa42c03855
 set(handles.popupX,'string',colNames);
 set(handles.popupY,'string',colNames,'value',2);
 
 %make a plot
 setAxesMain(handles)
 
-<<<<<<< HEAD
-=======
+
 function fig = getParentFigure(fig)
 % if the object is a figure or figure descendent, return the
 % figure. Otherwise return [].
@@ -127,7 +114,6 @@ while ~isempty(fig) & ~strcmp('figure', get(fig,'type'))
   fig = get(fig,'parent');
 end
 
->>>>>>> 474b6ba36020c844b45698410ac232fa42c03855
 function setAxesMain(handles)
 %get wanted data from x and y labels
 xColNum = get(handles.popupX,'value');
@@ -137,10 +123,8 @@ plotData = get(handles.uitable2,'Data');
 %if categorical, bar chart
 rawX = plotData(:,xColNum);
 rawY = plotData(:,yColNum);
-<<<<<<< HEAD
+
 hold off
-=======
->>>>>>> 474b6ba36020c844b45698410ac232fa42c03855
 %if the same data is selected on both axes (x==y)
 if xColNum == yColNum
     %if data is categorical             (x(Cat),y(Cat))
@@ -154,10 +138,8 @@ if xColNum == yColNum
         scatter(handles.axesMain,xPlot,yPlot);
     end 
 %else if data is variable
-<<<<<<< HEAD
-=======
+
 hold off
->>>>>>> 474b6ba36020c844b45698410ac232fa42c03855
 else
     %Data sets are different (x!=y)
     if iscellstr(rawX(1))
@@ -190,10 +172,6 @@ else
     end
 end
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 474b6ba36020c844b45698410ac232fa42c03855
 % --------------------------------------------------------------------
 function Close_Callback(hObject, eventdata, handles)
 % hObject    handle to Close (see GCBO)
@@ -307,14 +285,13 @@ rawY = cell2mat(plotData(:,yColNum));
 %    rawX(end);
 %vq1 = spaps(rawX,rawY,150000);
 
-<<<<<<< HEAD
+
 
 coeffs = splinefit(rawX,rawY,1);
 yy = ppval(coeffs,rawX);
 errors = (yy-rawY).^2
 hold on
 plot(rawX,yy);
-=======
 %fit spline
 coeffs = splinefit(rawX,rawY,1);
 yy = ppval(coeffs,rawX);
@@ -331,15 +308,12 @@ I = bsxfun(@lt, meann + 2*stdd, errors) | bsxfun(@gt, meann - 2*stdd, errors);
 hold on
 for i = 1:length(I)
     if(I(i) ~= 0)
-        rawX(i)
-        rawY(i)
         %put a red circle through anoms
         plot(rawX(i),rawY(i),'ro');
         foundAnom(handles,xColNum,i,...
             abs((rawY(i)-meann)/stdd),[xColNum,yColNum])
     end
 end
->>>>>>> 474b6ba36020c844b45698410ac232fa42c03855
 hold off
 
 %[coeffs,x,y] = clickfit_OH('method','spline')
@@ -362,11 +336,6 @@ plotData = get(handles.uitable2,'Data');
 rawX = cell2mat(plotData(:,xColNum));
 rawY = cell2mat(plotData(:,yColNum));
 
-<<<<<<< HEAD
-[coeffs,x,y] = clickfit_OH('method','spline')
-yy = ppval(coeffs,rawX)
-errors = (yy-rawY).^2
-=======
 [coeffs,x,y] = clickfit_OH('method','spline');
 yy = ppval(coeffs,rawX);
 errors = (yy-rawY).^2;
@@ -398,7 +367,7 @@ yColNum = get(handles.popupY,'value');
 %get raw cell data from uitable
 plotData = get(handles.uitable2,'Data');
 %if categorical, bar chart
-rawX = cell2mat(plotData(:,xColNum));
+%rawX = cell2mat(plotData(:,xColNum));
 rawY = cell2mat(plotData(:,yColNum));
 
 figure
@@ -468,10 +437,10 @@ function foundAnom(handles, x, y, deviation, context)
 % context   array: array of plotted variables [x, y, z] when anom was found
 %NOTE: deviation matches context
 foundAnoms = cell2mat(get(handles.AnomTable,'data'))
-x
-y
-deviation
-context
+%x
+%y
+%deviation
+%context
 dataVector = [x,y,deviation,context]
 if isempty(foundAnoms)
     foundAnoms = num2cell(dataVector)
@@ -549,4 +518,3 @@ jtable = juiTable(1).getComponent(0).getComponent(0);
 jtable.setNonContiguousCellSelection(false);
 jtable.setColumnSelectionAllowed(false);
 jtable.setRowSelectionAllowed(true);
->>>>>>> 474b6ba36020c844b45698410ac232fa42c03855
