@@ -370,9 +370,7 @@ plotData = get(handles.uitable2,'Data');
 %rawX = cell2mat(plotData(:,xColNum));
 rawY = cell2mat(plotData(:,yColNum));
 
-figure
-
-histfit(rawY);
+allfitdist(rawY,'PDF');
 
 
 % --- Executes on button press in TagDataButton.
