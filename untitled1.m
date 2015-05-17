@@ -23,7 +23,7 @@ function varargout = untitled1(varargin)
 % Edit the above text to modify the response to help untitled1
 
 
-% Last Modified by GUIDE v2.5 27-Apr-2015 14:01:30
+% Last Modified by GUIDE v2.5 17-May-2015 10:22:11
 
 
 % Begin initialization code - DO NOT EDIT
@@ -516,3 +516,10 @@ jtable = juiTable(1).getComponent(0).getComponent(0);
 jtable.setNonContiguousCellSelection(false);
 jtable.setColumnSelectionAllowed(false);
 jtable.setRowSelectionAllowed(true);
+
+
+% --- Executes on button press in closestButton.
+function closestButton_Callback(hObject, eventdata, handles)
+% hObject    handle to closestButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
