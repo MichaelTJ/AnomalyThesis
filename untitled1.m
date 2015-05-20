@@ -23,7 +23,7 @@ function varargout = untitled1(varargin)
 % Edit the above text to modify the response to help untitled1
 
 
-% Last Modified by GUIDE v2.5 17-May-2015 20:38:29
+% Last Modified by GUIDE v2.5 19-May-2015 12:13:52
 
 
 % Begin initialization code - DO NOT EDIT
@@ -68,8 +68,8 @@ hTabs(2) = uitab('Parent',handles.uiTabGroup,'Title','FitDist');
 hTabs(3) = uitab('Parent',handles.uiTabGroup,'Title','Closest');
 hTabs(4) = uitab('Parent',handles.uiTabGroup,'Title','Cluster');
 guidata(hObject,handles);
-set(handles.axesMain, 'Parent', handles.uiTabGroup)
-set(handles.uiTabGroup, 'SelectedTab', hTabs(2));
+set(handles.axesMain, 'Parent', gcf)
+set(handles.uiTabGroup, 'SelectedTab', hTabs(1));
 
 %FitLine tab
 set(handles.FitLineButton,'Parent',hTabs(1));
@@ -139,7 +139,6 @@ while ~isempty(fig) & ~strcmp('figure', get(fig,'type'))
 end
 
 function setAxesMain(handles,uiTabGroup)
-get(get(handles.axesMain,'Parent'))
 %set(handles.axesMain, 'Parent', get(handles.uiTabGroup,'SelectedTab'));
 %set(handles.axesMain,'Parent',
 %get wanted data from x and y labels
@@ -238,14 +237,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-% --- Executes on button press in graphButton.
-function graphButton_Callback(hObject, eventdata, handles)
-% hObject    handle to graphButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-setAxesMain(handles)
-
 % --- Executes on selection change in popupY.
 function popupY_Callback(hObject, eventdata, handles)
 % hObject    handle to popupY (see GCBO)
@@ -291,8 +282,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-% --- Executes on button press in FitLineButton.
 function FitLineButton_Callback(hObject, eventdata, handles)
 % hObject    handle to FitLineButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -306,27 +295,61 @@ plotData = get(handles.uitable2,'Data');
 %if categorical, bar chart
 rawX = cell2mat(plotData(:,xColNum));
 rawY = cell2mat(plotData(:,yColNum));
+t = ~isnan(rawX) & ~isnan(rawY);
+[curves gofs] = allfitlines(rawX(t),rawY(t));
+setAxesMain(handles);
+hold on;
+for i=1:length(curves)
+    if i<= 3
+        a = plot(curves{i});
+        set(a,'Tag',type(curves{i}));
+    else
+        a = plot(curves{i});
+        set(a,'Visible','off');
+        set(a,'Tag',type(curves{i}));
+    end
+    
+end
+legend('hide')
+update_methodTable(curves,eventdata,handles)
+hold off;
 
-%sampleRange = rawX(1):...
-%    1:...
-%    rawX(end);
-%vq1 = spaps(rawX,rawY,150000);
+function update_methodTable(listItems,eventdata,handles)
+newList = cell(2,length(listItems));
+for indx1=1:length(listItems)
+    newList{indx1,1} = type(listItems{indx1});
+    if indx1<=3
+        newList{indx1,2} = true;
+    else
+        newList{indx1,2} = false;
+    end
+end
+set(handles.methodTable,'data',newList)
 
 
+% --- Executes on button press in FitLineButton.
+function FitLineButton_Callback2(hObject, eventdata, handles)
+% hObject    handle to FitLineButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+%get wanted data from x and y labels
+xColNum = get(handles.popupX,'value');
+yColNum = get(handles.popupY,'value');
+%get raw cell data from uitable
+plotData = get(handles.uitable2,'Data');
+%if categorical, bar chart
+rawX = cell2mat(plotData(:,xColNum));
+rawY = cell2mat(plotData(:,yColNum));
 
 coeffs = splinefit(rawX,rawY,1);
 yy = ppval(coeffs,rawX);
-errors = (yy-rawY).^2
+errors = (yy-rawY).^2;
 hold on
 plot(rawX,yy);
-%fit spline
-coeffs = splinefit(rawX,rawY,1);
-yy = ppval(coeffs,rawX);
-hold on
-plot(rawX,yy)
 hold off
 %calculate mean and standard deviation of errors
-errors = (yy-rawY).^2;
+
 meann = mean(errors);
 stdd = std(errors);
 
@@ -493,18 +516,6 @@ else
     end
 end
 
-        
-        
-
-
-
-
-
-
-        
-        
-
-
 % --- Executes on button press in AnomContextButton.
 function AnomContextButton_Callback(hObject, eventdata, handles)
 % hObject    handle to AnomContextButton (see GCBO)
@@ -596,3 +607,29 @@ function errorPopupMenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes when entered data in editable cell(s) in methodTable.
+function methodTable_CellEditCallback(hObject, eventdata, handles)
+% hObject    handle to methodTable (see GCBO)
+% eventdata  structure with the following fields (see UITABLE)
+%	Indices: row and column indices of the cell(s) edited
+%	PreviousData: previous data for the cell(s) edited
+%	EditData: string(s) entered by the user
+%	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
+%	Error: error string when failed to convert EditData to appropriate value for Data
+% handles    structure with handles and user data (see GUIDATA)
+eventdata.Indices
+trueInd = eventdata.Indices - [0 1]
+lineType = get(handles.methodTable,'data')
+lineType = lineType(trueInd(1))
+%methodTypes = get(findobj(handles.axesMain,'Type','line'),'Tag')
+method = findobj(handles.axesMain,'Type','line','Tag',lineType{1})
+if eventdata.NewData == 1
+    set(method,'Visible','on')
+else
+    set(method,'Visible','off')
+end
+
+%get(gca,'Children','Type','line')
+
