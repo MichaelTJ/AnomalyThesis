@@ -1,4 +1,4 @@
-function varargout = untitled1(varargin)
+function varargout = AnomDet(varargin)
 % UNTITLED1 MATLAB code for untitled1.fig
 %      UNTITLED1, by itself, creates a new UNTITLED1 or raises the existing
 %      singleton*.
