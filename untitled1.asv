@@ -66,8 +66,6 @@ hs = '<html><font size="4">'; %html start
 he = '</font></html>'; %html end
 cnh = cellfun(@(x)[hs x he],colNames,'uni',false); %with html
 
-kse_test(raw(2:end,:));
-
 %set values on the form page
 set(handles.columnsListBox,'string',colNames);
 set(handles.uitable2,'Data',raw(2:end,:),'ColumnName',cnh);
