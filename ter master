@@ -1,0 +1,52 @@
+[33mcommit b7a85b14255ae35173c84671e35e42801e469bf3[m
+Author: MichaelTJ <michaeltomjensen@gmail.com>
+Date:   Tue Aug 25 07:47:31 2015 +1000
+
+    Update
+
+[33mcommit 7f25bd233739e10658707f180bed681144ef729d[m
+Author: MichaelTJ <michaeltomjensen@gmail.com>
+Date:   Thu May 21 11:20:03 2015 +1000
+
+    Merge branch '3D'
+    
+    Conflicts:
+    	allfitdist.m
+    	untitled1.fig
+    	untitled1.m
+
+[33mcommit c91a1d188e3459954507039da4d86f343af78574[m
+Author: MichaelTJ <michaeltomjensen@gmail.com>
+Date:   Wed May 20 13:14:33 2015 +1000
+
+    allfitlines checkboxes
+
+[33mcommit 7d0eba4d475af717a326cf80315c696c9919a83b[m
+Author: MichaelTJ <michaeltomjensen@gmail.com>
+Date:   Sun May 17 21:42:53 2015 +1000
+
+    Tabs Added
+
+[33mcommit 886ddcddc0408070c7b97e620259250ca8d89e93[m
+Author: MichaelTJ <michaeltomjensen@gmail.com>
+Date:   Sun May 17 13:01:03 2015 +1000
+
+    Aesthetics
+
+[33mcommit 33708f611ed2c48a63ab404eb64a8c0254e70113[m
+Author: MichaelTJ <michaeltomjensen@gmail.com>
+Date:   Thu May 7 15:55:46 2015 +1000
+
+    better distribution plotter
+
+[33mcommit 70d21a0fee13327f24c38083c99de071655535ad[m
+Author: MichaelTJ <michaeltomjensen@gmail.com>
+Date:   Thu May 7 15:30:00 2015 +1000
+
+    proper untitled1
+
+[33mcommit d87bb1fe3ae42d2da0392655dc3396153b93d3be[m
+Author: MichaelTJ <michaeltomjensen@gmail.com>
+Date:   Thu May 7 15:20:48 2015 +1000
+
+    Compiles again
