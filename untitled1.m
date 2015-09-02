@@ -57,21 +57,37 @@ function Open_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+%look for files with extensions
 handles.fileName = uigetfile({'*.xlsx';'*.xls'});
-
+%get data from file
 [numbers, strings,raw] = xlsread(handles.fileName);
+%Set column names to first row in file
 colNames = raw(1,:);
-
+%formatting so that column names are readable
 hs = '<html><font size="4">'; %html start
 he = '</font></html>'; %html end
 cnh = cellfun(@(x)[hs x he],colNames,'uni',false); %with html
 
 %set values on the form page
 set(handles.columnsListBox,'string',colNames);
+
+%put all data in main table (uitable2)
 set(handles.uitable2,'Data',raw(2:end,:),'ColumnName',cnh);
 set(handles.popupX,'string',colNames);
 set(handles.popupY,'string',colNames,'value',2);
 
+%create subsets
+handles.subsets = cell(size(colNames));
+
+%set globals for passing data between guis
+handles.subsets = setGlobals(hObject, colNames, raw(2:end,:), handles);
+%create ignoreRowList
+sizeMain = size(get(handles.uitable2,'Data'))
+%make a ones table same size as main data
+handles.ignoreRowList = ones(sizeMain(1),1)
+%update the ignore list
+updateIgnoreRowList(handles)
+guidata(hObject,handles)
 %make a plot
 setAxesMain(handles)
 
@@ -140,14 +156,30 @@ xColNum = get(handles.popupX,'value');
 yColNum = get(handles.popupY,'value');
 %get raw cell data from uitable
 plotData = get(handles.uitable2,'Data');
-%if categorical, bar chart
+handles.subsets{4}
+updateIgnoreRowList(handles)
+%get all data
 rawX = plotData(:,xColNum);
 rawY = plotData(:,yColNum);
+
+%delete rows that are on the ignore list
+%for every element in column
+sizeRawX = size(rawX);
+trueLength = sizeRawX(1)
+for i=trueLength:-1:1
+    trueLength
+    %if the row is off
+    if handles.ignoreRowList(i)==0
+        rawX(i)= []
+        rawY(i)= []
+    end
+end
+
 
 hold off
 %if the same data is selected on both axes (x==y)
 if xColNum == yColNum
-    %if data is categorical             (x(Cat),y(Cat))
+    %if first element in col is string -> categorical             (x(Cat),y(Cat))
     if iscellstr(rawX(1))
         cats = categorical(rawX);
         hist(handles.axesMain,cats);
@@ -179,10 +211,17 @@ else
         if iscellstr(rawY(1))
             %xNumeric yCategoric        (x(Num),y(Cat))
             xPlot = cell2mat(rawX);
+            %gets by categorical
             yCats = categorical(rawY);
+            [yCatUniques, ia, ic] = unique(yCats);
+            
             %can't plot against strings
+            %gives strings a number for each unique value
             ordPlot = double(ordinal(rawY));
-            gscatter(xPlot,yCats,ordPlot)
+            gscatter(xPlot,yCats,ic)
+            
+            legend(char(yCatUniques));
+            
         else
             %if Xdata catagorical       (x(Num),y(Num))
             xPlot = cell2mat(rawX);
@@ -615,10 +654,12 @@ end
 
 
 % --- Executes on button press in editSetsY.
-function editSetsY_Callback(hObject, eventdata, handles)
+function editSetsY_Callback(hObject, eventdata, handles) 
 % hObject    handle to editSetsY (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+%empty set for incoming subset
+
 EditSets(hObject, eventdata, handles)
 
 % --- Executes on button press in EditSetX.
@@ -627,3 +668,88 @@ function EditSetX_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+function Gsubsets = setGlobals(hObject, colNames, raw, handles)
+
+%set colCount to the second index of size raw
+sz = size(raw)
+colCount = sz(2)
+
+%set an empty cell array the size of raw
+uniques = cell(size(raw));
+
+%for each column
+for n=1:colCount
+    %get the column in question
+    rawX = raw(:,n)
+    %if the column has a string at start
+    if(iscellstr(rawX(1)))
+        %get the unique values
+        tempUniques = unique(rawX)
+        %for every unique value
+        for m = 1:size(tempUniques)
+            %change uniques array value
+            uniques(m,n) = tempUniques(m)
+        end
+    else
+        %if its not a string column
+        str = 'numerical';
+        uniques(1,n) = {str};
+    end
+end
+
+%now have mostly empty list (uniques) with unique strings or 'numerical'
+%create empty cell array for global
+%for each column
+
+for n=1:colCount
+    a = uniques(:,n);
+    %clear empties
+    a = a(~cellfun('isempty',a));
+    %create emptyies with logical column
+    newList = cell(length(a),2);
+    %for each element in unique column
+    for indx=1:length(a)
+        %set the first value to the unique string 
+        newList{indx,1} = a{indx};
+        %set the second val to logical true
+        newList{indx,2} = true;
+    end
+    %add the uniques+logical cell to global
+    handles.subsets{n} = newList
+end
+Gsubsets = handles.subsets
+
+function updateIgnoreRowList(handles)
+%get subset list
+sizeUniques = size(handles.subsets)
+data = get(handles.uitable2,'Data')
+%get length of data
+sizeData = size(data)
+%for each column
+for i=1:sizeUniques(2)
+    %get the related set
+    uniqSet = handles.subsets(1,i)
+    actUniqSet = [uniqSet{:}]
+    sizeActUniqSet = size(actUniqSet)
+    %for each uniq subset in column
+    for j=1:sizeActUniqSet(1)
+        %if off on/off value
+        if(actUniqSet{j,2}==0)
+            a = cell(actUniqSet)
+            %for every value in the column
+            sizeData(1)
+            for k=1:sizeData(1)
+                %if the value matches the subset
+                data(k,i)
+                a(j,1)
+                if strcmp(data(k,i),a(j,1))
+                    %set the ignore row value to off
+                    handles.ignoreRowList(k) = 0;
+                end
+            end
+        end
+    end
+end
+h = findobj('Tag','uitable2');
+guidata(h,handles);
+            
