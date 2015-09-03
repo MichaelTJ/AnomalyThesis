@@ -135,7 +135,16 @@ function doneButton_Callback(hObject, eventdata, handles)
 % hObject    handle to doneButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+ handles
+%run setAxesMain
+h = findobj('Tag','uitable2')
+ % if exists (not empty)
+ if ~isempty(h)
+    % get copy of original gui data
+    g1data = guidata(h);
+    handles
+    setAxesMain(handles)
+ end
 
 %globStruct.splitSet = get(handles.listboxSplitting, 'string')
 close(handles.EditSetsGui);

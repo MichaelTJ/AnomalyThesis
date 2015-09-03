@@ -90,9 +90,7 @@ sizeData = size(raw(2:end,:));
 handles.ignoreRowList = ones(sizeData(1),1);
 
 %make a plot
-%setAxesMain(handles);
-handles = setAxesMain2D(hObject,eventdata,handles);
-guidata(hObject, handles)
+setAxesMain(handles);
 
 % --- Executes just before untitled1 is made visible.
 function untitled1_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -776,8 +774,6 @@ function popup3X_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popup3X contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popup3X
-handles = setAxesMain3D(hObject,eventdata,handles);
-guidata(hObject, handles)
 
 
 % --- Executes during object creation, after setting all properties.
@@ -801,8 +797,6 @@ function popup3Y_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popup3Y contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popup3Y
-handles = setAxesMain3D(hObject,eventdata,handles);
-guidata(hObject, handles)
 
 
 % --- Executes during object creation, after setting all properties.
@@ -826,8 +820,6 @@ function popup3Z_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popup3Z contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popup3Z
-handles = setAxesMain3D(hObject,eventdata,handles);
-guidata(hObject, handles)
 
 
 % --- Executes during object creation, after setting all properties.
