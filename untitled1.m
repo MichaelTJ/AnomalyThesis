@@ -23,7 +23,7 @@ function varargout = AnomDet(varargin)
 % Edit the above text to modify the response to help untitled1
 
 
-% Last Modified by GUIDE v2.5 03-Sep-2015 10:50:28
+% Last Modified by GUIDE v2.5 03-Sep-2015 13:07:06
 
 
 % Begin initialization code - DO NOT EDIT
@@ -160,6 +160,7 @@ while ~isempty(fig) & ~strcmp('figure', get(fig,'type'))
   fig = get(fig,'parent');
 end
 
+%{
 % --------------------------------------------------------------------
 function setAxesMain(handles)
 
@@ -241,6 +242,7 @@ else
         end
     end
 end
+%}
 
 % --------------------------------------------------------------------
 function Close_Callback(hObject, eventdata, handles)
@@ -287,7 +289,8 @@ function popupY_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupY contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupY
-setAxesMain(handles)
+handles = setAxesMain2D(hObject,eventdata,handles);
+guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
 function popupY_CreateFcn(hObject, eventdata, handles)
@@ -309,7 +312,8 @@ function popupX_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupX contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupX
-setAxesMain(handles)
+handles = setAxesMain2D(hObject,eventdata,handles);
+guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
 function popupX_CreateFcn(hObject, eventdata, handles)
@@ -338,7 +342,8 @@ rawX = cell2mat(plotData(:,xColNum));
 rawY = cell2mat(plotData(:,yColNum));
 t = ~isnan(rawX) & ~isnan(rawY);
 [curves gofs] = allfitlines(rawX(t),rawY(t));
-setAxesMain(handles);
+handles = setAxesMain2D(hObject,eventdata,handles);
+guidata(hObject, handles)
 hold on;
 for i=1:length(curves)
     if i<= 3
@@ -731,41 +736,6 @@ end
 %output value
 Gsubsets = handles.subsets;
 
-function updateIgnoreRowList(handles)
-%get subset list
-sizeUniques = size(handles.subsets);
-%get data
-data = get(handles.uitable2,'Data');
-%get size of data
-sizeData = size(data);
-%make a ones table same size as main data
-handles.ignoreRowList = ones(sizeData(1),1)
-%for each column
-for i=1:sizeUniques(2)
-    %get the related set
-    uniqSet = handles.subsets(1,i);
-    actUniqSet = [uniqSet{:}];
-    sizeActUniqSet = size(actUniqSet);
-    %for each uniq subset in column
-    for j=1:sizeActUniqSet(1)
-        %if off on/off value
-        if(actUniqSet{j,2}==0)
-            a = cell(actUniqSet);
-            %for every value in the column
-            for k=1:sizeData(1)
-                %if the value matches the subset
-                if strcmp(data(k,i),a(j,1))
-                    %set the ignore row value to off
-                    handles.ignoreRowList(k) = 0;
-                end
-            end
-        end
-    end
-end
-h = findobj('Tag','uitable2');
-guidata(h,handles)
-
-            
 
 
 % --- Executes on selection change in popup3X.
@@ -841,3 +811,18 @@ function popup3Z_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in saveAnalysisBut.
+function saveAnalysisBut_Callback(hObject, eventdata, handles)
+% hObject    handle to saveAnalysisBut (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in runAllButton.
+function runAllButton_Callback(hObject, eventdata, handles)
+% hObject    handle to runAllButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+RunAll(hObject,eventdata,handles)

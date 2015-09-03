@@ -9,7 +9,7 @@ xColNum = get(handles.popupX,'value');
 yColNum = get(handles.popupY,'value');
 %get raw cell data from uitable
 plotData = get(handles.uitable2,'Data');
-updateIgnoreRowList(handles);
+handles = updateIgnoreRowList(hObject,eventdata,handles);
 %get all data
 rawX = plotData(:,xColNum);
 rawY = plotData(:,yColNum);
@@ -49,6 +49,15 @@ else
     if iscellstr(rawX(1))
         if iscellstr(rawY(1))
             %Both sets are cateforical  (x(Cat),y(Cat))
+            xCats = categorical(rawX);
+            yCats = categorical(rawY);
+            ordPlotX = double(ordinal(rawX));
+            ordPlotY = double(ordinal(rawY));
+            %TODO change values according to count
+            gscatter(ordPlotX,ordPlotY,xCats);
+            %hold on
+            %gscatter(ordPlotX,ordPlotY,yCats);
+            %hold off
             
         else
             %if Xdata catagorical       (x(Cat),y(Num))
@@ -83,7 +92,7 @@ else
     end
 end
 
-function updateIgnoreRowList(handles)
+function handles = updateIgnoreRowList(hObject,eventdata,handles)
 %get subset list
 sizeUniques = size(handles.subsets);
 %get data
@@ -114,4 +123,3 @@ for i=1:sizeUniques(2)
         end
     end
 end
-
