@@ -55,9 +55,7 @@ else
             ordPlotY = double(ordinal(rawY));
             %TODO change values according to count
             gscatter(ordPlotX,ordPlotY,xCats);
-            %hold on
-            %gscatter(ordPlotX,ordPlotY,yCats);
-            %hold off
+            
             
         else
             %if Xdata catagorical       (x(Cat),y(Num))
@@ -123,3 +121,4 @@ for i=1:sizeUniques(2)
         end
     end
 end
+

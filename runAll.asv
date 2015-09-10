@@ -196,18 +196,6 @@ for i=1:sizeData(2)
                 
                 %get mean and std deviation of 2d points
                 [plottable,msg] = meanStdNumNum(rawX,rawY,stdDevComp)
-                if plottable
-                    %Both sets are cateforical  (x(Cat),y(Cat))
-                    columns = get(handles.uitable2,'ColumnName');
-                    %bad way of cleaning up colNames
-                    col1 = strrep(columns(i),'<html><font size="4">','');
-                    col1 = strrep(col1,'</font></html>','');
-                    col2 = strrep(columns(j),'<html><font size="4">','');
-                    col2 = strrep(col2,'</font></html>','');
-                    externalOutput(hObject, eventdata, handles,...
-                        data,msg,'numNum',rawY,rawY,col1,col2)
-                end
-                    
                 %scatter(handles.axesMain,xPlot,yPlot);
             end
         end
@@ -285,9 +273,7 @@ plottable = false;
 msg = '';
 for i=1:sizeArrX(1)
     %distance from centre point
-    dist = sqrt((abs(cellNumsX(i)-meanArrX)/stdDevComp)^2+...
-        (abs(cellNumsY(i)-meanArrY)/stdDevComp)^2)
-    if dist>stdDevComp
+    if abs(cellNums(i)-meanArr)/stdDevComp>stdArr 
         msg = sprintf('Has elements outside %d standard deviations.',stdDevComp);
         plottable = true;
     end

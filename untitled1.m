@@ -23,7 +23,7 @@ function varargout = AnomDet(varargin)
 % Edit the above text to modify the response to help untitled1
 
 
-% Last Modified by GUIDE v2.5 03-Sep-2015 13:07:06
+% Last Modified by GUIDE v2.5 10-Sep-2015 10:18:30
 
 
 % Begin initialization code - DO NOT EDIT
@@ -114,10 +114,15 @@ dTabs(1) = uitab('Parent',handles.dimensionGroup,'Title','2D');
 dTabs(2) = uitab('Parent',handles.dimensionGroup,'Title','3D');
 dTabs(3) = uitab('Parent',handles.dimensionGroup,'Title','4D');
 dTabs(4) = uitab('Parent',handles.dimensionGroup,'Title','4+D');
-dTabs(4) = uitab('Parent',handles.dimensionGroup,'Title','All');
-
+dTabs(5) = uitab('Parent',handles.dimensionGroup,'Title','All');
+guidata(hObject, handles);
 %Set 2D panel to tab
 set(handles.Interface2DPanel,'Parent',dTabs(1));
+%Set 3D panel to tab
+set(handles.Interface3DPanel,'Parent',dTabs(2));
+%Set All panel to tab
+set(handles.InterfaceAllDPanel,'Parent',dTabs(5));
+
 handles.uiTabGroup = uitabgroup('Parent',handles.Interface2DPanel,...
     'Position',[0 0 1 1]);
 %uiTabGroup.SelectionChangedFcn = @uiTabGroup_Callback;
@@ -125,23 +130,33 @@ hTabs(1) = uitab('Parent',handles.uiTabGroup,'Title','FitLine');
 hTabs(2) = uitab('Parent',handles.uiTabGroup,'Title','FitDist');
 hTabs(3) = uitab('Parent',handles.uiTabGroup,'Title','Closest');
 hTabs(4) = uitab('Parent',handles.uiTabGroup,'Title','Cluster');
-guidata(hObject,handles);
 set(handles.axesMain, 'Parent', gcf)
 set(handles.uiTabGroup, 'SelectedTab', hTabs(1));
-
 %FitLine tab
 set(handles.FitLineButton,'Parent',hTabs(1));
 set(handles.ManualFit,'Parent',hTabs(1));
-
 %FitDist tab
 set(handles.FitDistButton,'Parent',hTabs(2));
-
 %Closest tab
 set(handles.closestButton,'Parent',hTabs(3));
-
 %Cluster tab
 set(handles.TagDataButton,'Parent',hTabs(4));
 
+%set(handles.dimensionGroup,'SelectionChangeFcn',@DChanged);
+
+guidata(hObject,handles);
+
+function DChanged(hObject,eventdata)
+index = get(hObject,'SelectedIndex');
+childrens = get(hObject,'Children')
+get(childrens(1))
+get(childrens(2))
+set(childrens(1),'Visible','off')
+set(childrens(2),'Visible','off')
+set(childrens(3),'Visible','off')
+set(childrens(4),'Visible','off')
+set(childrens(5),'Visible','off')
+set(childrens(index),'Visible','on')
 % --- Outputs from this function are returned to the command line.
 function varargout = untitled1_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -825,4 +840,27 @@ function runAllButton_Callback(hObject, eventdata, handles)
 % hObject    handle to runAllButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-RunAll(hObject,eventdata,handles)
+runAll(hObject,eventdata,handles)
+
+
+
+function deviationEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to deviationEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of deviationEdit as text
+%        str2double(get(hObject,'String')) returns contents of deviationEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function deviationEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to deviationEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
