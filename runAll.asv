@@ -4,8 +4,9 @@ function runAll(hObject, eventdata, handles)
 
 data = get(handles.uitable2,'Data');
 stdDevComp = str2num(get(handles.deviationEdit,'String'))
-oneDAnalysis(hObject,eventdata,handles,data,stdDevComp)
-twoDAnalysis(hObject,eventdata,handles,data,stdDevComp)
+%oneDAnalysis(hObject,eventdata,handles,data,stdDevComp)
+%twoDAnalysis(hObject,eventdata,handles,data,stdDevComp)
+threeDAnalysis(hObject,eventdata,handles,data,stdDevComp)
 
 function oneDAnalysis(hObject,eventdata,handles,data,stdDevComp)
 %size of data
@@ -34,7 +35,7 @@ for i=1:sizeData(2)
         end
     else
         %numerical
-        [plottable, msg] = meanStdOneDNum(rawCol,stdDevComp)
+        [plottable, msg] = meanStdOneDNum(cell2mat(rawCol),stdDevComp)
         if plottable
             externalOutput(hObject, eventdata, handles,...
                 data,msg,'hist1',cell2mat(rawCol))
@@ -48,50 +49,26 @@ sizeData = size(data);
 %get all data
 
 %for each column
-for i=1:sizeData(2)
+for i=1:sizeData(2)-1
     rawX = data(:,i);
     %for each future column
     for j=i+1:sizeData(2)
         rawY = data(:,j);
         if iscellstr(rawX(1))
             if iscellstr(rawY(1)) %(x(Cat),y(Cat))
+                [plotX plotY plotCount count] = getCatCatVals(rawX,rawY)
+                               
                 
-                plotX = []
-                plotY = []
-                plotCount = []
-                count = []
-                for k=1:size(rawY)
-                    combStr = strjoin([rawX(k) rawY(k)])
-                    if ismember(combStr,plotCount)
-                        %find the member
-                        [lia,Locb] = ismember(combStr,plotCount)
-                        %get the value associated with the 
-                        count(Locb) = count(Locb)+1
-                    else
-                        count(end+1) = 1
-                        plotX{end+1} = char(rawX(k))
-                        plotY{end+1} = char(rawY(k))
-                        plotCount{end+1} = combStr
-                    end
-                end     
-                
-                
-               [plottable,msg] = meanStdCatCat(count,stdDevComp)
-               if plottable
+                [plottable,msg] = meanStdCatCat(count,stdDevComp)
+                if plottable
                    
                     adjCount = resizeC(count)
-                    %Both sets are cateforical  (x(Cat),y(Cat))
-                    columns = get(handles.uitable2,'ColumnName');
-                    %bad way of cleaning up colNames
-                    col1 = strrep(columns(i),'<html><font size="4">','');
-                    col1 = strrep(col1,'</font></html>','');
-                    col2 = strrep(columns(j),'<html><font size="4">','');
-                    col2 = strrep(col2,'</font></html>','');
+                    [col] = getColNames([i j])
 
                     %calc anoms
                     externalOutput(hObject, eventdata, handles,...
-                        data,msg,'catCat',plotX,plotY,col1,col2,adjCount)
-               end
+                        data,msg,'catCat',plotX,plotY,col{1},col{2},adjCount)
+                end
 
             else
                 %if Xdata catagorical       (x(Cat),y(Num))
@@ -123,23 +100,17 @@ for i=1:sizeData(2)
                 seperated{1}
                 plottableLoop = false
                 for k=1:size(yCatUniques,1)
-                    [plottable,msg] = meanStdOneDNum(seperated(k),stdDevComp);
+                    [plottable,msg] = meanStdOneDNum(cell2mat(seperated(k)),stdDevComp);
                     if plottable
                         plottableLoop = true
                     end
                 end
                 if plottableLoop
                     
-                    %Both sets are cateforical  (x(Cat),y(Cat))
-                    columns = get(handles.uitable2,'ColumnName');
-                    %bad way of cleaning up colNames
-                    col1 = strrep(columns(i),'<html><font size="4">','');
-                    col1 = strrep(col1,'</font></html>','');
-                    col2 = strrep(columns(j),'<html><font size="4">','');
-                    col2 = strrep(col2,'</font></html>','');
+                    [col] = getColNames([i j])
                     
                     externalOutput(hObject, eventdata, handles,...
-                        data,msg,'catNum',rawY,xPlot,col2,col1)
+                        data,msg,'catNum',rawY,xPlot,col{2},col{1})
                 end
             end
         else
@@ -169,38 +140,122 @@ for i=1:sizeData(2)
                 seperated{1}
                 plottableLoop = false
                 for k=1:size(yCatUniques,1)
-                    [plottable,msg] = meanStdOneDNum(seperated(k),stdDevComp);
+                    [plottable,msg] = meanStdOneDNum(cell2mat(seperated(k)),stdDevComp);
                     if plottable
                         plottableLoop = true
                     end
                 end
                 if plottableLoop
                     
-                    %Both sets are cateforical  (x(Cat),y(Cat))
-                    columns = get(handles.uitable2,'ColumnName');
-                    %bad way of cleaning up colNames
-                    col1 = strrep(columns(i),'<html><font size="4">','');
-                    col1 = strrep(col1,'</font></html>','');
-                    col2 = strrep(columns(j),'<html><font size="4">','');
-                    col2 = strrep(col2,'</font></html>','');
+                    [col] = getColNames([i j])
                     
                     externalOutput(hObject, eventdata, handles,...
-                        data,msg,'catNum',rawY,xPlot,col2,col1)
+                        data,msg,'catNum',rawY,xPlot,col{2},col{1})
                 end
                     
                 
             else
                 %if Xdata catagorical       (x(Num),y(Num))
-                xPlot = cell2mat(rawX);
-                yPlot = cell2mat(rawY);
+                xPlot = cell2mat(rawX)
+                yPlot = cell2mat(rawY)
                 
                 %get mean and std deviation of 2d points
-                [plottable,msg] = meanStdNumNum(rawX,rawY,stdDevComp)
+                [plottable,stdMsg] = meanStdNumNum(rawX,rawY,stdDevComp)
+                
+                %get closest points
+                [plottable,closestMsg] = closestPoints(xPlot,yPlot,stdDevComp)
+                
+                msg = [stdMsg, closestMsg, ' asdfasdf']
+                if plottable
+                    [col] = getColNames([i j],handles)
+                    externalOutput(hObject, eventdata, handles,...
+                        data,msg,'numNum',rawX,rawY,col{1},col{2})
+                end
+                    
                 %scatter(handles.axesMain,xPlot,yPlot);
             end
         end
     end
 end
+
+function threeDAnalysis(hObject,eventdata,handles,data,stdDevComp)
+plot1 = true
+plot2 = true
+plot3 = true
+plot4 = true
+for i=1:size(data,2)-2
+    for j=i+1:size(data,2)-1
+        for k=j+1:size(data,2)
+            [catCount, numCount, catInd, numInd] = getCatNums(data,[i j k])
+            if catCount==3
+                %multigrid display
+                
+                [col] = getColNames([i j k],handles)
+                rawX = data(:,i);
+                rawY = data(:,j);
+                rawZ = data(:,k);
+                [plotX, plotY, plotCount, count] = getCatCatVals(rawX,rawY)
+                adjCount = resizeC(count)
+                msg = 'No anom detection, just testing'
+                if plot1
+                externalOutput(hObject, eventdata, handles,...
+                    data,msg,'catCatCat',plotX,plotY,rawZ,...
+                    col{1},col{2},col{3},adjCount)
+            end
+            if catCount==2
+                %box plot with cats combined
+                rawX = data(:,catInd(1))
+                rawY = data(:,catInd(2))
+                rawZ = data(:,numInd(1))
+                
+                [orderX,indexX,iX] = unique(rawX)
+                [orderY,indexY,iY] = unique(rawY)
+                %create a unique-rawX by unique-rawY cell array
+                groups = cell(size(orderX,1),size(orderY,1))
+                for groupi=1:size(iX,1)
+                    iX(groupi)
+                    iY(groupi)
+                    groups{iX(groupi),iY(groupi)}
+                    groups{iX(groupi),iY(groupi)} = ...
+                        [groups{iX(groupi),iY(groupi)} ...
+                        rawZ{groupi}]
+                end
+                
+                [col] = getColNames([i j k],handles)
+                msg = 'No anom detection, just testing'
+                externalOutput(hObject, eventdata, handles,...
+                    data,msg,'catCatNum',rawX,rawY,rawZ,...
+                    col{1},col{2},col{3})
+                
+            end
+            if catCount ==1
+                %box plot with cats combined
+                rawX = data(:,catInd(1))
+                rawY = data(:,numInd(1))
+                rawZ = data(:,numInd(2))
+                
+                [col] = getColNames([i j k],handles)
+                msg = 'No anom detection, just testing'
+                externalOutput(hObject, eventdata, handles,...
+                    data,msg,'catNumNum',rawX,rawY,rawZ,...
+                    col{1},col{2},col{3})
+            end
+            if catCount==0
+                %box plot with cats combined
+                rawX = data(:,numInd(1))
+                rawY = data(:,numInd(2))
+                rawZ = data(:,numInd(3))
+                
+                [col] = getColNames([i j k],handles)
+                msg = 'No anom detection, just testing'
+                externalOutput(hObject, eventdata, handles,...
+                    data,msg,'numNumNum',rawX,rawY,rawZ,...
+                    col{1},col{2},col{3})
+            end
+        end
+    end
+end
+
 
 function resizeCount = resizeC(countArray)
 countArray
@@ -222,27 +277,26 @@ msg = ''
 %TODO: return more descriptive messages including var names
 for i=1:sizeArr(1)
     if abs(oneDArray(i)-meanArr)/stdDevComp>stdArr 
-        msg = sprintf('Has elements outside %d standard deviations.',stdDevComp);
+        msg = sprintf('Has elements outside %d standard deviations.\n',stdDevComp);
         plottable = true
         %TODO get row for unique
     end
     if oneDArray(i) == 1
-        msg = 'Has unique element.'
+        msg = 'Has unique element.\n'
         plottable = true;
         %TODO get row for unique
     end
 end
 
 function [plottable, msg] = meanStdOneDNum(oneDArray,stdDevComp)
-cellNums = cell2mat(oneDArray);
-meanArr = mean(cellNums);
-stdArr = std(cellNums);
+meanArr = mean(oneDArray);
+stdArr = std(oneDArray);
 sizeArr = size(oneDArray);
 plottable = false;
 msg = '';
 for i=1:sizeArr(1)
-    if abs(cellNums(i)-meanArr)/stdDevComp>stdArr 
-        msg = sprintf('Has elements outside %d standard deviations.',stdDevComp);
+    if abs(oneDArray(i)-meanArr)/stdDevComp>stdArr 
+        msg = sprintf('Has elements outside %d standard deviations.\n',stdDevComp);
         plottable = true;
     end
 end
@@ -255,7 +309,7 @@ plottable = false;
 msg = '';
 for i=1:sizeArr(2)
     if abs(combinedCounts(i)-meanArr)/stdDevComp>stdArr 
-        msg = sprintf('Has elements outside %d standard deviations.',stdDevComp);
+        msg = sprintf('Has elements outside %d standard deviations.\n',stdDevComp);
         plottable = true;
     end
 end
@@ -273,8 +327,96 @@ plottable = false;
 msg = '';
 for i=1:sizeArrX(1)
     %distance from centre point
-    if abs(cellNums(i)-meanArr)/stdDevComp>stdArr 
-        msg = sprintf('Has elements outside %d standard deviations.',stdDevComp);
+    dist = sqrt((abs(cellNumsX(i)-meanArrX)/stdDevComp)^2+...
+        (abs(cellNumsY(i)-meanArrY)/stdDevComp)^2)
+    if dist>stdDevComp
+        msg = sprintf('Has elements outside %d standard deviations.\n',stdDevComp);
         plottable = true;
     end
+end
+
+function [plottable,msg] = closestPoints(xPlot,yPlot,stdDevComp)
+
+plottable = false;
+msg = '';
+min_dist = Inf;
+%result has xValue and yValue and distance
+result = zeros(size(xPlot,1),1);
+%for each point in xIndex
+for p1 = 1:size(xPlot,1)
+    min_dist = Inf;
+    %for each point in y index
+    for p2 = 1:size(yPlot,1)
+        %d = distance between point 1 and point 2
+        d = sqrt((xPlot(p1)-xPlot(p2))^2+(yPlot(p1)-yPlot(p2))^2)
+        %set the update the minimum distance if it is lower than curMin
+        if d < min_dist && p1 ~= p2
+            %min_p1 = p1;
+            %min_p2 = p2;
+            min_dist = d;
+        end
+    end
+    %record min distance
+    result(p1) = min_dist
+end
+[plottable, msg] = meanStdOneDNum(result,stdDevComp)
+if plottable
+    msg = 'Nearest neighbours mismatch.\n';
+end
+
+function [catCount, numCount, catElems, numElems] = getCatNums(data,columns)
+catCount = 0;
+numCount = 0;
+catElems = int16.empty()
+numElems = int16.empty()
+%for each column
+for i=1:size(columns,2)
+    %get the data related to the column
+    rawN = data(:,columns(i))
+    if iscellstr(rawN(1))
+        catCount = catCount+1;
+        catElems(end+1) = columns(i)
+    else
+        numCount = numCount+1;
+        numElems(end+1) = columns(i)
+    end
+end
+
+function [plotX, plotY, plotCount, count] = getCatCatVals(rawX,rawY)
+plotX = []
+plotY = []
+plotCount = []
+count = []
+% for each y val
+for k=1:size(rawY)
+    %join xCat and yCat
+    combStr = strjoin([rawX(k) rawY(k)])
+    %if it already exists
+    if ismember(combStr,plotCount)
+        %find the member
+        [lia,Locb] = ismember(combStr,plotCount)
+        %increment its count
+        count(Locb) = count(Locb)+1
+    else
+        %if it doesn't already exist
+        %add a new category to count
+        count(end+1) = 1
+        %set xCat and yCat
+        plotX{end+1} = char(rawX(k))
+        plotY{end+1} = char(rawY(k))
+        %set combined cat
+        plotCount{end+1} = combStr
+    end
+end    
+
+function [names] = getColNames(colIndexes,handles)
+%Both sets are categorical  (x(Cat),y(Cat))
+columns = get(handles.uitable2,'ColumnName');
+%for every column
+names = cell.empty()
+for index=1:size(colIndexes,2)
+    %add a column to names
+    names{end+1} = ''
+    names{index} = strrep(columns(index),'<html><font size="4">','');
+    names{index} = strrep(names{index},'</font></html>','');
 end

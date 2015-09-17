@@ -110,11 +110,7 @@ elseif strcmp(plotType,'catCat')
     
     ordX = ordinal(varargin{7});
     ordY = ordinal(varargin{8});
-    
-    %have to convert to numbers to plot
-    ordPlotX = double(ordX);
-    ordPlotY = double(ordY);
-    
+        
     %plot
     
     %x,y labels
@@ -138,6 +134,86 @@ elseif strcmp(plotType,'numNum')
     scatter(handles.axesOut,cell2mat(varargin{7}),cell2mat(varargin{8}))
     xlabel(varargin{9});
     ylabel(varargin{10});
+elseif strcmp(plotType,'catCatCat')
+    %assume v(7) and v(8) are rawdata
+    %assume v(9),v(10) are respective colNames
+    
+    %trying to get matrix (x,y,count)
+    %combined = varargin{7}.*varargin{8};
+    %combOrd = ordinal(combined)
+    
+    %
+    [order,index,iX] = unique(varargin{7})
+    [order,index,iY] = unique(varargin{8})
+    [order,index,iZ] = unique(varargin{9})
+    
+    %get the lowest number of uniques
+    
+    subplot(2,2,1);
+    h = scatter(iX,iY,varargin{13})
+    subplot(2,2,2);
+    h2 = scatter(iX,iY,varargin{13})
+    subplot(2,2,3);
+    h3 = scatter(iX,iY,varargin{13})
+    subplot(2,2,4);
+    h4 = scatter(iX,iY,varargin{13})
+    
+    
+    ordX = ordinal(varargin{7});
+    ordY = ordinal(varargin{8});
+        
+    %plot
+    
+    %x,y labels
+    xlabel(varargin{10});
+    ylabel(varargin{11});
+    %x,y ticks
+    xLabels = getlabels(ordX);
+    yLabels = getlabels(ordY);
+    
+    set(gca,'XTick',1:1:size(xLabels,2));
+    set(gca,'YTick',1:1:size(yLabels,2));
+    
+    set(gca,'XTickLabel',xLabels);
+    set(gca,'YTickLabel',yLabels);
+elseif strcmp(plotType,'catCatNum')
+    %{
+    (hObject, eventdata, handles,...
+                    data,msg,'catCatNum',rawX,rawY,rawZ,...
+                    col{1},col{2},col{3})
+    %}
+    
+    [orderX,indexX,iX] = unique(varargin{7})
+    [orderY,indexY,iY] = unique(varargin{8})
+    cats = [varargin{7} varargin{8}]
+    categorical(cats)
+    cell2mat(varargin{9})
+    boxplot(handles.axesOut,cell2mat(varargin{9}),categorical(cats))
+elseif strcmp(plotType,'catNumNum')
+    %{
+    (hObject, eventdata, handles,...
+                    data,msg,'catNumNum',rawX,rawY,rawZ,...
+                    col{1},col{2},col{3})
+    %}
+    [orderY,indexY,iY] = unique(varargin{7});
+    
+    gscatter(cell2mat(varargin{8}),cell2mat(varargin{9}),...
+        varargin(7))
+    xlabel(varargin{10});
+    ylabel(varargin{11});
+elseif strcmp(plotType,'numNumNum')
+    %{
+    externalOutput(hObject, eventdata, handles,...
+        data,msg,'numNumNum',rawX,rawY,rawZ,...
+        col{1},col{2},col{3})
+    %}
+    scatter3(cell2mat(varargin{7}),...
+        cell2mat(varargin{8}),...
+        cell2mat(varargin{9}))
+    xlabel(varargin{10});
+    ylabel(varargin{11});
+    zlabel(varargin{12});
+    
 end
 
         
