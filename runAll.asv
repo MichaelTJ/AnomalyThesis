@@ -6,7 +6,58 @@ data = get(handles.uitable2,'Data');
 stdDevComp = str2num(get(handles.deviationEdit,'String'))
 %oneDAnalysis(hObject,eventdata,handles,data,stdDevComp)
 %twoDAnalysis(hObject,eventdata,handles,data,stdDevComp)
-threeDAnalysis(hObject,eventdata,handles,data,stdDevComp)
+%threeDAnalysis(hObject,eventdata,handles,data,stdDevComp)
+allDAnalysis(hObject,eventdata,handles,data)
+
+function allDAnalysis(hObject,eventdata,handles,data)
+dataSize = size(data,2);
+startNums = ones(1,dataSize);
+maxNums = zeros(1,dataSize);
+for i=1:dataSize
+    maxNums(1,i) = dataSize+1-i;
+end
+curDim = 1;
+if curDim ==2
+    aasdfasdf=1;
+end
+nextSet = zeros(1,dataSize)
+%while number isnt maxed
+while any(find(~nextSet))
+    for i=1:dataSize
+        %if the digit is not maxed
+        if nextSet(1,i)~=maxNums(1,i)
+            %increment it
+            nextSet(1,i) = nextSet(1,i)+1
+            break
+        else
+            %if it's maxed
+            %if curDim is maxed
+            if curDim == i
+                %increment the start counters
+                for j=1:curDim
+                    startNums(1,j) = startNums(1,j) + 1
+                    %set nextSet
+                    nextSet(1,j) = startNums(1,j)
+                end
+                curDim = curDim +1
+                nextSet(1,curDim) = 1
+                break
+            else
+                %dont worry about it
+            end
+        end
+    end
+    %for every non-zero value in nextSet
+    toAnalysis = cell(size(data,2),0)
+    for k=1:dataSize
+        if nextSet(1,k)~=0
+            toAnalysis = [toAnalysis data(:,nextSet(1,k))]
+        end
+    end
+    analyzeAll(toAnalysis)
+end
+
+
 
 function oneDAnalysis(hObject,eventdata,handles,data,stdDevComp)
 %size of data
@@ -57,6 +108,7 @@ for i=1:sizeData(2)-1
         if iscellstr(rawX(1))
             if iscellstr(rawY(1)) %(x(Cat),y(Cat))
                 [plotX plotY plotCount count] = getCatCatVals(rawX,rawY)
+                
                                
                 
                 [plottable,msg] = meanStdCatCat(count,stdDevComp)
@@ -194,13 +246,17 @@ for i=1:size(data,2)-2
                 rawX = data(:,i);
                 rawY = data(:,j);
                 rawZ = data(:,k);
+                [plots, plotCount, count] = getAllCatVals([rawX,rawY,rawZ])
                 [plotX, plotY, plotCount, count] = getCatCatVals(rawX,rawY)
                 adjCount = resizeC(count)
+                
                 msg = 'No anom detection, just testing'
                 if plot1
-                externalOutput(hObject, eventdata, handles,...
-                    data,msg,'catCatCat',plotX,plotY,rawZ,...
-                    col{1},col{2},col{3},adjCount)
+                    externalOutput(hObject, eventdata, handles,...
+                        data,msg,'catCatCat',plotX,plotY,rawZ,...
+                        col{1},col{2},col{3},adjCount)
+                    plot1 = false
+                end
             end
             if catCount==2
                 %box plot with cats combined
@@ -223,9 +279,12 @@ for i=1:size(data,2)-2
                 
                 [col] = getColNames([i j k],handles)
                 msg = 'No anom detection, just testing'
-                externalOutput(hObject, eventdata, handles,...
-                    data,msg,'catCatNum',rawX,rawY,rawZ,...
-                    col{1},col{2},col{3})
+                if plot2
+                    externalOutput(hObject, eventdata, handles,...
+                        data,msg,'catCatNum',rawX,rawY,rawZ,...
+                        col{1},col{2},col{3})
+                    plot2 = false
+                end
                 
             end
             if catCount ==1
@@ -236,9 +295,12 @@ for i=1:size(data,2)-2
                 
                 [col] = getColNames([i j k],handles)
                 msg = 'No anom detection, just testing'
-                externalOutput(hObject, eventdata, handles,...
-                    data,msg,'catNumNum',rawX,rawY,rawZ,...
-                    col{1},col{2},col{3})
+                if plot3
+                    externalOutput(hObject, eventdata, handles,...
+                        data,msg,'catNumNum',rawX,rawY,rawZ,...
+                        col{1},col{2},col{3})
+                    plot3 = false
+                end
             end
             if catCount==0
                 %box plot with cats combined
@@ -248,9 +310,12 @@ for i=1:size(data,2)-2
                 
                 [col] = getColNames([i j k],handles)
                 msg = 'No anom detection, just testing'
-                externalOutput(hObject, eventdata, handles,...
-                    data,msg,'numNumNum',rawX,rawY,rawZ,...
-                    col{1},col{2},col{3})
+                if plot4
+                    externalOutput(hObject, eventdata, handles,...
+                        data,msg,'numNumNum',rawX,rawY,rawZ,...
+                        col{1},col{2},col{3})
+                    plot4 = false
+                end
             end
         end
     end
@@ -408,6 +473,46 @@ for k=1:size(rawY)
         plotCount{end+1} = combStr
     end
 end    
+
+function [plots, plotCount, count] = getAllCatVals(rawCols)
+%plots is a cell array, each cell contains an array of the 
+%   individual category's single string
+%plotCount is the combined string of plots
+%count is the number of times plotCount is found
+%get the number of columns
+colCount = size(rawCols,2)
+%set plots to empty cell array of size of number of cols
+plots = cell(1,colCount)
+plotCount = []
+count = []
+
+%for each row
+for i=1:size(rawCols,1)
+    %for each column
+    combStr = ''
+    for j=1:size(rawCols,2)
+        %combine the strings
+        combStr = strjoin([combStr rawCols(i,j)])
+    end
+    if ismember(combStr,plotCount)
+        %find the membet
+        [lia,Locb] = ismember(combStr,plotCount)
+        %incremebt its count
+        count(Locb) = count(Locb)+1
+    else
+        %if it doesn't exit, add to the array
+        count(end+1) = 1
+        %for each column, update it's plots with cur row
+        for j=1:size(rawCols,2)
+            char(rawCols(i,j))
+            plots{1,j}
+            
+            plots{1,j}{end+1} = char(rawCols(i,j))
+        end
+        plotCount{end+1} = combStr
+    end
+end
+   
 
 function [names] = getColNames(colIndexes,handles)
 %Both sets are categorical  (x(Cat),y(Cat))

@@ -58,9 +58,22 @@ function Open_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 %look for files with extensions
-handles.fileName = uigetfile({'*.xlsx';'*.xls'});
-%get data from file
-[numbers, strings,raw] = xlsread(handles.fileName);
+excelObj = actxserver('Excel.Application');
+[handles.fileName,Folder] = uigetfile({'*.xlsx';'*.xls'});
+fileObj = excelObj.Workbooks.Open(fullfile(Folder,handles.fileName));
+sheetObj = excelObj.Worksheets.get('Item','Sheet1');
+rowEnd = sheetObj.Range('A1').End('xlDown').Row;
+colEnd = sheetObj.Range('A1').End('xlToRight').Column;
+if(rowEnd > 1000)   
+    %get data from file
+    readRange = strcat('A1:',xlscol(colEnd));
+    readRange = strcat(readRange,'1000');
+   [numbers, strings,raw] = xlsread(handles.fileName,readRange);
+
+else
+   [numbers, strings,raw] = xlsread(handles.fileName); 
+end
+
 %Set column names to first row in file
 colNames = raw(1,:);
 %formatting so that column names are readable
