@@ -46,14 +46,23 @@ while any(find(~nextSet))
     end
     %for every non-zero value in nextSet
     toAnalysis = cell(size(data,2),0)
+            if curDim == size(data,2)
     for k=1:dataSize
         if nextSet(1,k)~=0
-            if curDim ==2
-                toAnalysis = [toAnalysis data(:,nextSet(1,k))]
-            end
+                toAnalysis = [toAnalysis data(:,nextSet(1,k))];
         end
     end
-    analyzeAll(toAnalysis)
+    [clusters, counts, numColsIndx, catColsIndx] = analyzeAll(toAnalysis);
+    actualNumCols = nextSet(1,numColsIndx(1,:))
+    actualCatCols = nextSet(1,catColsIndx(1,:))
+    for i=1:size(clusters,1)
+        rows = clusters{i,1};
+        data(rows(1,:),1)
+    end
+    clusterOutput(hObject, eventdata, handles,...
+        data,clusters,counts, actualNumCols, actualCatCols)     
+    
+            end
 end
 
 
@@ -106,15 +115,15 @@ for i=1:sizeData(2)-1
         rawY = data(:,j);
         if iscellstr(rawX(1))
             if iscellstr(rawY(1)) %(x(Cat),y(Cat))
-                [plotX plotY plotCount count] = getCatCatVals(rawX,rawY)
+                [plotX plotY plotCount count] = getCatCatVals(rawX,rawY);
                 
                                
                 
                 [plottable,msg] = meanStdCatCat(count,stdDevComp)
                 if plottable
                    
-                    adjCount = resizeC(count)
-                    [col] = getColNames([i j])
+                    adjCount = resizeC(count);
+                    [col] = getColNames([i j]);
 
                     %calc anoms
                     externalOutput(hObject, eventdata, handles,...
@@ -125,40 +134,40 @@ for i=1:sizeData(2)-1
                 %if Xdata catagorical       (x(Cat),y(Num))
                 %copied code from (x(Num),y(Cat))
                 %swap rawX and rawY so it works
-                a = rawX
-                rawX = rawY
-                rawY = a
+                a = rawX;
+                rawX = rawY;
+                rawY = a;
                 xPlot = cell2mat(rawX);
                 %gets by categorical
                 yCats = categorical(rawY);
                 ordYCats = double(ordinal(rawY));
                 
-                [yCatUniques, ia, ic] = unique(yCats)
+                [yCatUniques, ia, ic] = unique(yCats);
                 %split values into categories
                 
-                seperated = {}
+                seperated = {};
                 for k=1:size(yCatUniques,1)
-                    seperated{end+1} = []
+                    seperated{end+1} = [];
                 end
                 %place values in the right columns
                 for k=1:size(xPlot,1)
                     %the value
-                    val = xPlot(k)
+                    val = xPlot(k);
                     %the catNum
-                    catNum = ordYCats(k)
-                    seperated{catNum}(end+1) = val
+                    catNum = ordYCats(k);
+                    seperated{catNum}(end+1) = val;
                 end
-                seperated{1}
-                plottableLoop = false
+                seperated{1};
+                plottableLoop = false;
                 for k=1:size(yCatUniques,1)
                     [plottable,msg] = meanStdOneDNum(cell2mat(seperated(k)),stdDevComp);
                     if plottable
-                        plottableLoop = true
+                        plottableLoop = true;
                     end
                 end
                 if plottableLoop
                     
-                    [col] = getColNames([i j])
+                    [col] = getColNames([i j]);
                     
                     externalOutput(hObject, eventdata, handles,...
                         data,msg,'catNum',rawY,xPlot,col{2},col{1})
@@ -173,32 +182,32 @@ for i=1:sizeData(2)-1
                 yCats = categorical(rawY);
                 ordYCats = double(ordinal(rawY));
                 
-                [yCatUniques, ia, ic] = unique(yCats)
+                [yCatUniques, ia, ic] = unique(yCats);
                 %split values into categories
                 
-                seperated = {}
+                seperated = {};
                 for k=1:size(yCatUniques,1)
-                    seperated{end+1} = []
+                    seperated{end+1} = [];
                 end
                 %place values in the right columns
                 for k=1:size(xPlot,1)
                     %the value
-                    val = xPlot(k)
+                    val = xPlot(k);
                     %the catNum
-                    catNum = ordYCats(k)
-                    seperated{catNum}(end+1) = val
+                    catNum = ordYCats(k);
+                    seperated{catNum}(end+1) = val;
                 end
-                seperated{1}
-                plottableLoop = false
+                seperated{1};
+                plottableLoop = false;
                 for k=1:size(yCatUniques,1)
                     [plottable,msg] = meanStdOneDNum(cell2mat(seperated(k)),stdDevComp);
                     if plottable
-                        plottableLoop = true
+                        plottableLoop = true;
                     end
                 end
                 if plottableLoop
                     
-                    [col] = getColNames([i j])
+                    [col] = getColNames([i j]);
                     
                     externalOutput(hObject, eventdata, handles,...
                         data,msg,'catNum',rawY,xPlot,col{2},col{1})
@@ -207,16 +216,16 @@ for i=1:sizeData(2)-1
                 
             else
                 %if Xdata catagorical       (x(Num),y(Num))
-                xPlot = cell2mat(rawX)
-                yPlot = cell2mat(rawY)
+                xPlot = cell2mat(rawX);
+                yPlot = cell2mat(rawY);
                 
                 %get mean and std deviation of 2d points
-                [plottable,stdMsg] = meanStdNumNum(rawX,rawY,stdDevComp)
+                [plottable,stdMsg] = meanStdNumNum(rawX,rawY,stdDevComp);
                 
                 %get closest points
-                [plottable,closestMsg] = closestPoints(xPlot,yPlot,stdDevComp)
+                [plottable,closestMsg] = closestPoints(xPlot,yPlot,stdDevComp);
                 
-                msg = [stdMsg, closestMsg, ' asdfasdf']
+                msg = [stdMsg, closestMsg, ' asdfasdf'];
                 if plottable
                     [col] = getColNames([i j],handles)
                     externalOutput(hObject, eventdata, handles,...

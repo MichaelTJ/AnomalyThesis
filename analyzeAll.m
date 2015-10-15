@@ -1,14 +1,18 @@
-function [ output_args ] = analyzeAll(rawCols)
+function [clusters, counts, numColsIndx, catColsIndx] = analyzeAll(rawCols)
 %takes in columns of data, returns Analysis
 %   Detailed explanation goes here
 catCols = [];
 numCols = [];
+numColsIndx = [];
+catColsIndx = [];
 %split the columns into numerical and categorical arrays
 for i=1:size(rawCols,2)
     if iscellstr(rawCols(1,i))
         catCols = [catCols rawCols(:,i)];
+        catColsIndx = [catColsIndx i];
     else
         numCols = [numCols rawCols(:,i)];
+        numColsIndx = [numColsIndx i];
     end
 end
 if isempty(catCols)
@@ -17,7 +21,7 @@ if isempty(catCols)
 end
 %Combine Cat Cols
 combCats = cell(size(catCols,1),1);
-for i=1:size(rawCols,1)
+parfor i=1:size(rawCols,1)
     combCats{i} = strjoin(catCols(i,:));
 end
 %analyze the combined categorical
@@ -27,11 +31,14 @@ end
 
 %analyze the numerical
 %this splits up the numerical rows into clusters
-[clusters, LOFOut, indexClusters] = LOF(numCols, 4, true);
+[clusters, LOFOut, indexClusters] = LOF(numCols, 5, true);
 if isempty(clusters)
     clusters = ones(size(rawCols,1),1);
     indexClusters = ones(size(rawCols,1),1);
 end
+
+
+fprintf('Combinbing Cats and Clusters\n')
 %for each combined category, get the count of all the clusters
 counts = zeros(size(catGroups,1),size(clusters,2));
 %for every combined category
@@ -52,22 +59,29 @@ end
 for i=1:size(catGroups,1)
     counts(i,:) = counts(i,:)./(sum(strcmp(combCats,catGroups{i,1})));
 end
-rawCols
-catGroups
-clusters
 
 %if any of the counts == 1
 %it implies that there's a perfect match between group and cluster
-%taking anything with a 90%+ correlation
 trend = false;
+clusters = (clusters)';
+
+fprintf('To Text\n')
+%show group categories
+writetable(cell2table(clusters),'clusters.txt')
 B = counts>=0.9;
 if any(counts(:,:)>=0.95)
+    %show the groups
     trend = true;
 end
 
 
+%number of unique categories
 
+%nuber of clusters, average value in cluster, size of clusters, 
 
+%size of cluster wrt total count
+
+%if there's multiple in counts, if sizeof count ==1 -> unique
 
 function [plots, plotCount, count] = getAllCatVals(rawCols)
 %plots is a cell array, each cell contains an array of the 

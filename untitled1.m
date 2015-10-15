@@ -23,7 +23,7 @@ function varargout = AnomDet(varargin)
 % Edit the above text to modify the response to help untitled1
 
 
-% Last Modified by GUIDE v2.5 10-Sep-2015 10:18:30
+% Last Modified by GUIDE v2.5 14-Oct-2015 21:08:45
 
 
 % Begin initialization code - DO NOT EDIT
@@ -64,10 +64,10 @@ fileObj = excelObj.Workbooks.Open(fullfile(Folder,handles.fileName));
 sheetObj = excelObj.Worksheets.get('Item','Sheet1');
 rowEnd = sheetObj.Range('A1').End('xlDown').Row;
 colEnd = sheetObj.Range('A1').End('xlToRight').Column;
-if(rowEnd > 1000)   
+if(rowEnd > 65000)   
     %get data from file
     readRange = strcat('A1:',xlscol(colEnd));
-    readRange = strcat(readRange,'1000');
+    readRange = strcat(readRange,'65000'); %change this back to 1000
    [numbers, strings,raw] = xlsread(handles.fileName,readRange);
 
 else
@@ -877,3 +877,12 @@ function deviationEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in conePlotButton.
+function conePlotButton_Callback(hObject, eventdata, handles)
+% hObject    handle to conePlotButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = setAxesMain3D(hObject,eventdata,handles);
+guidata(hObject, handles)
