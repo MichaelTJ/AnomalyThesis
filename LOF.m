@@ -9,7 +9,7 @@ data = cell2mat(data);
 %setup normalized array
 if normalize
     
-    fprintf('Normalizing\n')
+    fprintf('Normalizing\n');
     normData = zeros(size(data));
 
     %for each column
@@ -25,13 +25,13 @@ if normalize
         end
     end
     
-    fprintf('ClosestPoints\n')
+    %fprintf('ClosestPoints\n')
     [distances,closestPoints] = kthClosest(k,normData,minPoints);
 else
     [distances,closestPoints] = kthClosest(k,data,minPoints);
 end
 
-fprintf('LOF\n')
+%fprintf('LOF\n')
 LOF = zeros(size(data,1),1);
 parfor i=1:size(data,1)
     sumDistances = 0;
@@ -40,17 +40,18 @@ parfor i=1:size(data,1)
             break;
         end
         if distances(closestPoints(i,j)) ~=0
-            sumDistances = sumDistances + distances(i)/distances(closestPoints(i,j));
+            sumDistances = sumDistances + ...
+                distances(i)/distances(closestPoints(i,j));
         end
     end
-    LOF(i) = sumDistances/minPoints
+    LOF(i) = sumDistances/minPoints;
 end
 
 i = 1;
 %set up empty groups array
 %while not every row has a group
 groupRet = cell.empty();
-fprintf('Clustering\n')
+%fprintf('Clustering\n')
 while numel(cell2mat(groupRet)) < size(closestPoints,1)
     %find the elements that are missing
     usedRows = ismember(1:size(closestPoints,1),cell2mat(groupRet));
@@ -96,9 +97,10 @@ parfor p1 = 1:size(columns,1)
     end
     distance(:,1) = sqrt(sum(diffCols,2));
     tops = Inf(k,1);
-    [tops,closestPoints(p1,:)] = checktops(p1, tops, closestPoints(p1,:) , distance);
+    [tops,closestPoints(p1,:)] = ...
+        checktops(p1, tops, closestPoints(p1,:) , distance);
     distances(p1) = tops(k);
-    fprintf('%d: %d\n',p1,distances(p1))
+    %fprintf('%d: %d\n',p1,distances(p1))
 end
 
 function [tops,closestPoints] = checktops(p1, tops, closestPoints, dist)

@@ -1,0 +1,2 @@
+allAnoms1,allAnoms2,allAnoms3,allAnoms4,allAnoms5,allAnoms6,allAnoms7,allAnoms8,allAnoms9,allAnoms10,allAnoms11
+,,,,,,,,,,

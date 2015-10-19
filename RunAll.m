@@ -10,6 +10,11 @@ stdDevComp = str2num(get(handles.deviationEdit,'String'))
 allDAnalysis(hObject,eventdata,handles,data)
 
 function allDAnalysis(hObject,eventdata,handles,data)
+allAnoms = struct('rows',[],...
+    'catSet',[],'catProp',[],'catMean',[],'catStd',[],...
+    'numSet',[],'numProp',[],'numMean',[],'numStd',[],...
+    'clusterNum',[],'clusters',{},...
+    'anomType',[]);
 dataSize = size(data,2);
 startNums = ones(1,dataSize);
 maxNums = zeros(1,dataSize);
@@ -17,53 +22,79 @@ for i=1:dataSize
     maxNums(1,i) = dataSize+1-i;
 end
 curDim = 1;
-nextSet = zeros(1,dataSize)
+nextSet = zeros(1,dataSize);
 %while number isnt maxed
 while any(find(~nextSet))
     for i=1:dataSize
         %if the digit is not maxed
         if nextSet(1,i)~=maxNums(1,i)
             %increment it
-            nextSet(1,i) = nextSet(1,i)+1
-            break
+            nextSet(1,i) = nextSet(1,i)+1;
+            %if it's the first element
+            if i==1
+                break
+            %if it's any other number
+            else
+                %move towards the start addding 1 each time
+                for j=i-1:-1:1
+                    nextSet(1,j) = nextSet(1,i)+(i-j);
+                end
+                break
+            end
+                %
         else
             %if it's maxed
             %if curDim is maxed
             if curDim == i
                 %increment the start counters
                 for j=1:curDim
-                    startNums(1,j) = startNums(1,j) + 1
+                    startNums(1,j) = startNums(1,j) + 1;
                     %set nextSet
-                    nextSet(1,j) = startNums(1,j)
+                    nextSet(1,j) = startNums(1,j);
                 end
-                curDim = curDim +1
-                nextSet(1,curDim) = 1
+                curDim = curDim +1;
+                nextSet(1,curDim) = 1;
                 break
             else
-                %dont worry about it
+                %curDim not maxed yet
             end
         end
     end
+    
     %for every non-zero value in nextSet
-    toAnalysis = cell(size(data,2),0)
+    toAnalysis = cell(size(data,2),0);
             if curDim == size(data,2)
     for k=1:dataSize
         if nextSet(1,k)~=0
-                toAnalysis = [toAnalysis data(:,nextSet(1,k))];
+            toAnalysis = [toAnalysis data(:,nextSet(1,k))];
         end
     end
-    [clusters, counts, numColsIndx, catColsIndx] = analyzeAll(toAnalysis);
-    actualNumCols = nextSet(1,numColsIndx(1,:))
-    actualCatCols = nextSet(1,catColsIndx(1,:))
-    for i=1:size(clusters,1)
-        rows = clusters{i,1};
-        data(rows(1,:),1)
-    end
-    clusterOutput(hObject, eventdata, handles,...
-        data,clusters,counts, actualNumCols, actualCatCols)     
     
+    [clusters, counts, numColsIndx, catColsIndx, Summary, Anomalies]...
+        = analyzeAll(toAnalysis);
+    for k=1:size(Anomalies,2)
+        allAnoms(end+1) = Anomalies(k);
+    end
+    
+    %{
+    if ~isempty(numColsIndx)
+        actualNumCols = nextSet(1,numColsIndx(1,:))
+        for i=1:size(clusters,1)
+            rows = clusters{i,1};
+            data(rows,:)
+        end
+    else
+        actualNumCols = [];
+    end
+    if ~isempty(catColsIndx)
+        actualCatCols = nextSet(1,catColsIndx(1,:));
+    else
+        actualCatCols = [];
+    end
+    %}
             end
 end
+struct2File(allAnoms,'anoms.txt')
 
 
 
