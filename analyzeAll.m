@@ -45,7 +45,7 @@ totalCount = size(combCats,1);
 catPropsMean = zeros(size(catGroups));
 catPropsStd = zeros(size(catGroups));
 if size(catGroups,1)~=1
-    for i=1:size(catGroups,1)
+    parfor i=1:size(catGroups,1)
         groupCount = size(find(indexCatGroups(:)==i),1);
         catPropsStd(i) = groupCount/totalCount;
         catPropsMean(i) = groupCount/totalCount*groupCount;
@@ -79,7 +79,9 @@ end
 %analyze the combined categorical
 %for each category, cluster their individual rows
 if ~(isempty(numCols) || size(catGroups,1)==1)
-    for i=1:size(catGroups,1)
+    TotalCount = size(catGroups,1)
+    parfor i=1:size(catGroups,1)
+        fprintf('catClust %d / %d',i,TotalCount)
         %indexCatGroups(:)==i
         %find(indexCatGroups(:)==i)
         %ismember(i,indexCatGroups(:),'rows')
@@ -92,7 +94,6 @@ if ~(isempty(numCols) || size(catGroups,1)==1)
                 analyzeClusters(clusters,k,indexClusters,catGroups(i),2,...
                 Anomalies);
             %have to convert back to data rows notation
-            
         end
         
     end
@@ -138,13 +139,11 @@ end
 trend = false;
 clusters = (clusters)';
 
-fprintf('To Text\n')
-%show group categories
-%writetable(cell2table(clusters),'clusters.txt')
 B = counts>=0.9;
+Matches = find(B)
 if any(counts(:,:)>=0.95)
     %show the groups
-    trend = true;
+    trend = true
 end
 
 
@@ -198,7 +197,7 @@ propStd = std(props,props);
 %(propMean-props(:))
 %abs(propMean-props(:))/propStd
 %abs(propMean-props(:))/propStd > 3
-anomaly = false
+anomaly = false;
 if any(abs(propMean-props(:))/propStd > 3)
     anomaly = true;
     

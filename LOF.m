@@ -9,7 +9,7 @@ data = cell2mat(data);
 %setup normalized array
 if normalize
     
-    fprintf('Normalizing\n');
+    %fprintf('Normalizing\n');
     normData = zeros(size(data));
 
     %for each column

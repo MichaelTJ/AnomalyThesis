@@ -60,13 +60,15 @@ while any(find(~nextSet))
             end
         end
     end
-    
+    nextSet
     %for every non-zero value in nextSet
     toAnalysis = cell(size(data,2),0);
-            if curDim == size(data,2)
+            %if curDim == size(data,2)
     for k=1:dataSize
-        if nextSet(1,k)~=0
-            toAnalysis = [toAnalysis data(:,nextSet(1,k))];
+        if maxNums(1,k)~=0
+        %if nextSet(1,k)~=0
+            toAnalysis = [toAnalysis data(:,maxNums(1,k))];
+            %toAnalysis = [toAnalysis data(:,nextSet(1,k))];
         end
     end
     
@@ -92,7 +94,7 @@ while any(find(~nextSet))
         actualCatCols = [];
     end
     %}
-            end
+            %end
 end
 struct2File(allAnoms,'anoms.txt')
 
