@@ -21,6 +21,30 @@ maxNums = zeros(1,dataSize);
 for i=1:dataSize
     maxNums(1,i) = dataSize+1-i;
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    %for every non-zero value in nextSet
+    toAnalysis = cell(size(data,2),0);
+            %if curDim == size(data,2)
+    for k=1:dataSize
+        if maxNums(1,k)~=0
+        %if nextSet(1,k)~=0
+            toAnalysis = [toAnalysis data(:,maxNums(1,k))];
+            %toAnalysis = [toAnalysis data(:,nextSet(1,k))];
+        end
+    end
+    
+    [clusters, counts, numColsIndx, catColsIndx, Summary, Anomalies]...
+        = analyzeAll(toAnalysis);
+    for k=1:size(Anomalies,2)
+        allAnoms(end+1) = Anomalies(k);
+    end
+    
+    struct2File(allAnoms,'anoms.txt')
+    return
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 curDim = 1;
 nextSet = zeros(1,dataSize);
 %while number isnt maxed
