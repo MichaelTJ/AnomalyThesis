@@ -54,6 +54,7 @@ else
             ordPlotX = double(ordinal(rawX));
             ordPlotY = double(ordinal(rawY));
             %TODO change values according to count
+            axes(handles.axesMain)
             gscatter(ordPlotX,ordPlotY,xCats);
             
             
@@ -63,6 +64,7 @@ else
             xCats = categorical(rawX);
             %can't plot against strings
             ordPlot = double(ordinal(rawX));
+            axes(handles.axesMain)
             gscatter(ordPlot,yPlot,xCats)
             %plotSpread(handles.axesMain,xPlot,yPlot)
         end
@@ -77,6 +79,7 @@ else
             %can't plot against strings
             %gives strings a number for each unique value
             ordPlot = double(ordinal(rawY));
+            axes(handles.axesMain)
             gscatter(xPlot,yCats,ic)
             
             legend(char(yCatUniques));

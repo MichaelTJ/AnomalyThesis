@@ -1,20 +1,20 @@
-function runAll(hObject, eventdata, handles)
+function handles = runAll(hObject, eventdata, handles)
 %RUNALL Summary of this function goes here
 %   Detailed explanation goes here
-
 data = get(handles.uitable2,'Data');
 stdDevComp = str2num(get(handles.deviationEdit,'String'))
 %oneDAnalysis(hObject,eventdata,handles,data,stdDevComp)
 %twoDAnalysis(hObject,eventdata,handles,data,stdDevComp)
 %threeDAnalysis(hObject,eventdata,handles,data,stdDevComp)
-allDAnalysis(hObject,eventdata,handles,data)
+handles = allDAnalysis(hObject,eventdata,handles,data)
 
-function allDAnalysis(hObject,eventdata,handles,data)
-allAnoms = struct('rows',[],...
+function handles = allDAnalysis(hObject,eventdata,handles,data)
+anomStruct = struct('rows',[],...
     'catSet',[],'catProp',[],'catMean',[],'catStd',[],...
     'numSet',[],'numProp',[],'numMean',[],'numStd',[],...
-    'clusterNum',[],'clusters',{},...
-    'anomType',[]);
+    'clusterNum',[],'clusters',{},'LOF',[],...
+    'anomType',{});
+handles.allAnoms = struct('cols',[],'Anom',[])
 dataSize = size(data,2);
 startNums = ones(1,dataSize);
 maxNums = zeros(1,dataSize);
@@ -22,7 +22,8 @@ for i=1:dataSize
     maxNums(1,i) = dataSize+1-i;
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%{
 
     %for every non-zero value in nextSet
     toAnalysis = cell(size(data,2),0);
@@ -38,11 +39,12 @@ end
     [clusters, counts, numColsIndx, catColsIndx, Summary, Anomalies]...
         = analyzeAll(toAnalysis);
     for k=1:size(Anomalies,2)
-        allAnoms(end+1) = Anomalies(k);
+        handles.allAnoms(end+1) = Anomalies(k);
     end
     
-    struct2File(allAnoms,'anoms.txt')
+    struct2File(handles.allAnoms,'anoms.txt')
     return
+%}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 curDim = 1;
@@ -88,20 +90,21 @@ while any(find(~nextSet))
     %for every non-zero value in nextSet
     toAnalysis = cell(size(data,2),0);
             %if curDim == size(data,2)
+    colNums = [];
+    %nextSet = maxNums
     for k=1:dataSize
-        if maxNums(1,k)~=0
-        %if nextSet(1,k)~=0
-            toAnalysis = [toAnalysis data(:,maxNums(1,k))];
-            %toAnalysis = [toAnalysis data(:,nextSet(1,k))];
+        %if maxNums(1,k)~=0
+        if nextSet(1,k)~=0
+            colNums = [colNums nextSet(1,k)]
+            %toAnalysis = [toAnalysis data(:,maxNums(1,k))];
+            toAnalysis = [toAnalysis data(:,nextSet(1,k))];
         end
     end
-    
     [clusters, counts, numColsIndx, catColsIndx, Summary, Anomalies]...
         = analyzeAll(toAnalysis);
     for k=1:size(Anomalies,2)
-        allAnoms(end+1) = Anomalies(k);
+        handles.allAnoms(end+1) = struct('cols',colNums,'Anom',Anomalies(k));
     end
-    
     %{
     if ~isempty(numColsIndx)
         actualNumCols = nextSet(1,numColsIndx(1,:))
@@ -120,7 +123,43 @@ while any(find(~nextSet))
     %}
             %end
 end
-struct2File(allAnoms,'anoms.txt')
+save('redditAnoms')
+temp = [handles.allAnoms.Anom];
+allRows = {temp.rows}';
+
+for i=1:size(allRows,1)
+    allRows{i} = mat2str(allRows{i});
+end
+
+
+allCols = {handles.allAnoms.cols}';
+%remove first empty element
+allCols(1,:)=[];
+for i=1:size(allCols,1)
+    allCols{i} = mat2str(allCols{i});
+end
+
+allDevs = {temp.LOF}';
+allAccept = cell(size(allCols));
+allIgnore = cell(size(allCols));
+[allAccept{:}] = deal(1);
+
+[allIgnore{:}] = deal(0);
+
+allContext = {temp.anomType};
+%{
+cl = [allContext{:}]==3
+allContext(find([allContext{:}]==1)) = {};
+allContext(find([allContext{:}]==2)) = {'Subcluster'};
+allContext(find([allContext{:}]==3)) = {'Cluster'};
+allContext(find([allContext{:}]==4)) = {'Local Outlier'};
+allContext(find([allContext{:}]==5)) = {'Outlier'};
+%}
+allContext = allContext';
+
+%combined = [allRows,allCols,allDevs,allAccept,allIgnore,allContext];
+set(handles.uitableAnomList,...
+    'data',[allRows,allCols,allDevs,allAccept,allIgnore,allContext])
 
 
 
@@ -173,8 +212,6 @@ for i=1:sizeData(2)-1
         if iscellstr(rawX(1))
             if iscellstr(rawY(1)) %(x(Cat),y(Cat))
                 [plotX plotY plotCount count] = getCatCatVals(rawX,rawY);
-                
-                               
                 
                 [plottable,msg] = meanStdCatCat(count,stdDevComp)
                 if plottable

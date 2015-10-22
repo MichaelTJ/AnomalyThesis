@@ -36,18 +36,22 @@ if iscellstr(rawX(1))
         yCats = categorical(rawY);
         if iscellstr(rawZ(1))   %(x(Cat),y(Cat),z(Cat))
             zCats = categorical(rawZ);
+            axes(handles.axesMain)
             scatter3(xCats,yCats,zCats);
         else                    %(x(Cat),y(Cat),z(Num))
             zPlot = cell2mat(rawZ);   
+            axes(handles.axesMain)
             scatter3(xCats,yCats,zPlot);      
         end
     else 
         yPlot = cell2mat(rawY);         
         if iscellstr(rawZ(1))   %(x(Cat),y(Num),z(Cat))
             zCats = categorical(rawZ);
+            axes(handles.axesMain)
             scatter3(xCats,yPlot,zCats);
         else                    %(x(Cat),y(Num),z(Num))
             zPlot = cell2mat(rawZ);     
+            axes(handles.axesMain)
             scatter3(xCats,yPlot,zPlot);   
         end
     end
@@ -57,18 +61,22 @@ else
         yCats = categorical(rawY);
         if iscellstr(rawZ(1))   %(x(Num),y(Cat),z(Cat))
             zCats = categorical(rawZ);
+            axes(handles.axesMain)
             scatter3(xPlot,yCats,zCats);
         else                    %(x(Num),y(Cat),z(Num))
             zPlot = cell2mat(rawZ); 
+            axes(handles.axesMain)
             scatter3(xPlot,yCats,zPlot);       
         end
     else
         yPlot = cell2mat(rawY);         
         if iscellstr(rawZ(1))   %(x(Num),y(Cat),z(Cat))
             zCats = categorical(rawZ);
+            axes(handles.axesMain)
             scatter3(xPlot,yPlot,zCats);
         else                    %(x(Num),y(Num),z(Num))
             zPlot = cell2mat(rawZ);     
+            axes(handles.axesMain)
             scatter3(xPlot,yPlot,zPlot);   
         end
     end

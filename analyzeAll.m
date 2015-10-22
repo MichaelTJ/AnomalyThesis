@@ -4,8 +4,8 @@ Summary = [];
 Anomalies = struct('rows',[],...
     'catSet',[],'catProp',[],'catMean',[],'catStd',[],...
     'numSet',[],'numProp',[],'numMean',[],'numStd',[],...
-    'clusterNum',[],'clusters',{},...
-    'anomType',[]);
+    'clusterNum',[],'clusters',{},'LOF',[],...
+    'anomType',{});
 %takes in columns of data, returns Analysis
 %   Detailed explanation goes here
 catCols = [];
@@ -71,7 +71,8 @@ if any(abs(propMean-catPropsStd(:))/propStd > 3)
                 'catStd',propStd,...
                 'numSet',[],'numProp',[],'numMean',[],'numStd',[],...
                 'clusterNum',[],'clusters',[],...
-                'anomType',1);
+                'LOF',abs(propMean-catPropsStd(i))/propStd,...
+                'anomType',{'Category'});
         end
     end
 end
@@ -80,19 +81,37 @@ end
 %for each category, cluster their individual rows
 if ~(isempty(numCols) || size(catGroups,1)==1)
     TotalCount = size(catGroups,1)
-    parfor i=1:size(catGroups,1)
-        fprintf('catClust %d / %d',i,TotalCount)
+    for i=1:size(catGroups,1)
+        fprintf('catClust %d / %d\n',i,TotalCount)
         %indexCatGroups(:)==i
         %find(indexCatGroups(:)==i)
         %ismember(i,indexCatGroups(:),'rows')
         %numCols(indexCatGroups(:)==i,:)
-        k=4;
+        k=5;
+        %if the number of elements in the category is less than kth element
         if size(numCols(indexCatGroups(:)==i,:),1)>k
+            rows = find(indexCatGroups(:)==i)
             [clusters,LOFOut,indexClusters] = ...
                 LOF(numCols(indexCatGroups(:)==i),k,true);
             [Anomalies, clusterRep, invalid, msg] = ...
-                analyzeClusters(clusters,k,indexClusters,catGroups(i),2,...
+                analyzeClusters(clusters,k,indexClusters,catGroups(i),...
+                {'Subcluster'},...
                 Anomalies);
+            highLOFs = find(LOFOut(:)>2)
+            %if there's highLOFs
+            if size(highLOFs,1)~=0
+                for j=1:size(highLOFs,1)
+                    %keeps anoms withon clusters
+                    Anomalies(end+1) = struct('rows',rows(highLOFs(j)),...
+                        'catSet',catGroups(i),'catProp',[],'catMean',[],...
+                        'catStd',[],...
+                        'numSet',[],'numProp',[],'numMean',[],'numStd',[],...
+                        'clusterNum',indexClusters(highLOFs(j)),...
+                        'clusters',{clusters},...
+                        'LOF',LOFOut(highLOFs(j)),...
+                        'anomType',{'Local Outlier'});
+                end
+            end
             %have to convert back to data rows notation
         end
         
@@ -100,14 +119,24 @@ if ~(isempty(numCols) || size(catGroups,1)==1)
 end
 %analyze the numerical
 %this splits up the numerical rows into clusters
-k=4;
+k=5;
 [clusters, LOFOut, indexClusters] = LOF(numCols, k, true);
 if isempty(clusters)
     clusters = ones(size(rawCols,1),1);
     indexClusters = ones(size(rawCols,1),1);
 else
     [Anomalies, clusterRep, invalid, msg] = ...
-        analyzeClusters(clusters,k,indexClusters,[],k,Anomalies);
+        analyzeClusters(clusters,k,indexClusters,[],{'Cluster'},Anomalies);
+        highLOFs = find(LOFOut(:)>2)
+        for i=1:size(highLOFs,1)
+            %keeps cluster anoms
+            Anomalies(end+1) = struct('rows',highLOFs(i),...
+                'catSet',[],'catProp',[],'catMean',[],'catStd',[],...
+                'numSet',[],'numProp',[],'numMean',[],'numStd',[],...
+                'clusterNum',indexClusters(highLOFs(i)),...
+                'clusters',{clusters},'LOF',LOFOut(highLOFs(i)),...
+                'anomType',{'Outlier'});
+        end
 end
 
 
@@ -139,8 +168,6 @@ end
 trend = false;
 clusters = (clusters)';
 
-B = counts>=0.9;
-Matches = find(B)
 if any(counts(:,:)>=0.95)
     %show the groups
     trend = true
@@ -195,7 +222,7 @@ propStd = std(props,props);
 
 %second variable makes it weighted
 %(propMean-props(:))
-%abs(propMean-props(:))/propStd
+abs(propMean-props(:))/propStd
 %abs(propMean-props(:))/propStd > 3
 anomaly = false;
 if any(abs(propMean-props(:))/propStd > 3)
@@ -211,13 +238,13 @@ if any(abs(propMean-props(:))/propStd > 3)
                 'numStd',propStd,...
                 'clusterNum',i,...
                 'clusters',{clusters},...
+                'LOF',abs(propMean-props(i))/propStd,...
                 'anomType',anomType);
         end
     end
 end
 [clusterRep, centres] = hist(props,[0.1 0.3 0.5 0.7 0.9]);
 if totProps(1)<0.1 && totProps(1)~=0
-    
     anomaly = true;
 end
 %proportion analysis

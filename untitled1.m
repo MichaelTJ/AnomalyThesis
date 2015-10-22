@@ -23,7 +23,7 @@ function varargout = AnomDet(varargin)
 % Edit the above text to modify the response to help untitled1
 
 
-% Last Modified by GUIDE v2.5 14-Oct-2015 21:08:45
+% Last Modified by GUIDE v2.5 22-Oct-2015 00:17:30
 
 
 % Begin initialization code - DO NOT EDIT
@@ -537,13 +537,13 @@ end
 hold off
 
 % --- Executes during object creation, after setting all properties.
-function AnomTable_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to AnomTable (see GCBO)
+function uitableAnomList_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to uitableAnomList (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 hs = '<html><font size="4">'; %html start
 he = '</font></html>'; %html end
-cn = {'Variable','Sample No.','Deviation'}; %original
+cn = {'Row/s','Column/s','Deviation','Accept','Ignore','Context'}; %original
 cnh = cellfun(@(x)[hs x he],cn,'uni',false); %with html
 
 set(hObject,'ColumnName', cnh);
@@ -554,7 +554,7 @@ function foundAnom(handles, x, y, deviation, context)
 % deviation array: usually standard deviations from model
 % context   array: array of plotted variables [x, y, z] when anom was found
 %NOTE: deviation matches context
-foundAnoms = cell2mat(get(handles.AnomTable,'data'))
+foundAnoms = cell2mat(get(handles.uitableAnomList,'data'))
 %x
 %y
 %deviation
@@ -562,7 +562,7 @@ foundAnoms = cell2mat(get(handles.AnomTable,'data'))
 dataVector = [x,y,deviation,context]
 if isempty(foundAnoms)
     foundAnoms = num2cell(dataVector)
-    set(handles.AnomTable,'data',foundAnoms);
+    set(handles.uitableAnomList,'data',foundAnoms);
 else
     %matching anoms 
     foundAnoms(:,1)
@@ -576,12 +576,12 @@ else
         if valueMatch(3)<deviation
             %replace the anom
             foundAnoms(matchesI) = [x,y,deviation,context]
-            set(handles.AnomTable,'data',num2cell(foundAnoms))
+            set(handles.uitableAnomList,'data',num2cell(foundAnoms))
         end
     else
         %add a new row
         foundAnoms = num2cell([foundAnoms;[x,y,deviation,context]])
-        set(handles.AnomTable,'data',foundAnoms);
+        set(handles.uitableAnomList,'data',foundAnoms);
         
     end
 end
@@ -592,37 +592,76 @@ function AnomContextButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-AnomTable = get(handles.AnomTable,'data');
+AnomTable = get(handles.uitableAnomList,'data');
 
 % --- Executes on button press in AnomDeleteButton.
 function AnomDeleteButton_Callback(hObject, eventdata, handles)
 % hObject    handle to AnomDeleteButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-data = get(handles.AnomTable,'data')
-rows = get(handles.AnomTable,'UserData')
+data = get(handles.uitableAnomList,'data')
+rows = get(handles.uitableAnomList,'UserData')
 mask = (1:size(data,1));
 mask(rows) = [];
 data = data(mask,:);
-set(handles.AnomTable,'data',data);
+set(handles.uitableAnomList,'data',data);
 
-% --- Executes when selected cell(s) is changed in AnomTable.
-function AnomTable_CellSelectionCallback(hObject, eventdata, handles)
-% hObject    handle to AnomTable (see GCBO)
+% --- Executes when selected cell(s) is changed in uitableAnomList.
+function uitableAnomList_CellSelectionCallback(hObject, eventdata, handles)
+% hObject    handle to uitableAnomList (see GCBO)
 % eventdata  structure with the following fields (see UITABLE)
 %	Indices: row and column indices of the cell(s) currently selecteds
 % handles    structure with handles and user data (see GUIDATA)
 % get indices of selected rows and make them available for other callbacks
 index = eventdata.Indices;
 if any(index)             %loop necessary to surpress unimportant errors.
-    rows = index(:,1);
+    rows = index(:,1)
     set(hObject,'UserData',rows);
+    temp = [handles.allAnoms.Anom];
+    temp = temp(rows)
+    cols = {handles.allAnoms.cols}
+    cols = fliplr(cols{rows(1)})
+    set(handles.uitableAnomData,'data',...
+        {temp.catSet,temp.catProp,temp.clusterNum,0}) 
+    data = get(handles.uitable2,'data')
+
+    data = data(:,cols)
+
+    catCols = [];
+    numCols = [];
+    numColsIndx = [];
+    catColsIndx = [];
+    %split the columns into numerical and categorical arrays
+    for i=1:size(data,2)
+        if iscellstr(data(1,i))
+            catCols = [catCols data(:,i)];
+            catColsIndx = [catColsIndx i];
+        else
+            numCols = [numCols data(:,i)];
+            numColsIndx = [numColsIndx i];
+        end
+    end
+    
+    if isempty(catCols)
+       catCols = cell(size(data,1),1);
+       catCols(:) = {'No category'};
+    end
+    
+    %Combine Cat Cols
+    combCats = cell(size(catCols,1),1);
+    
+    parfor i=1:size(data,1)
+        combCats{i} = strjoin(catCols(i,:));
+    end
+    setAxesAnomND(hObject, eventdata, handles,numCols,combCats,temp.rows(1))
+
 end
-juiTable = findjobj(handles.AnomTable,'class','UIScrollPane');
-jtable = juiTable(1).getComponent(0).getComponent(0);
-jtable.setNonContiguousCellSelection(false);
-jtable.setColumnSelectionAllowed(false);
-jtable.setRowSelectionAllowed(true);
+
+%juiTable = findjobj(handles.uitableAnomList,'class','UIScrollPane');
+%jtable = juiTable(1).getComponent(0).getComponent(0);
+%jtable.setNonContiguousCellSelection(false);
+%jtable.setColumnSelectionAllowed(false);
+%jtable.setRowSelectionAllowed(true);
 
 % --- Executes on button press in closestButton.
 function closestButton_Callback(hObject, eventdata, handles)
@@ -853,7 +892,8 @@ function runAllButton_Callback(hObject, eventdata, handles)
 % hObject    handle to runAllButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-runAll(hObject,eventdata,handles)
+handles = runAll(hObject,eventdata,handles)
+guidata(hObject, handles);
 
 
 
@@ -886,3 +926,17 @@ function conePlotButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles = setAxesMain3D(hObject,eventdata,handles);
 guidata(hObject, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function uitableAnomData_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to uitableAnomData (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+hs = '<html><font size="4">'; %html start
+he = '</font></html>'; %html end
+cn = {'Combined Categories','Category percentage','Cluster No.','Clusters'}; %original
+cnh = cellfun(@(x)[hs x he],cn,'uni',false); %with html
+
+set(hObject,'ColumnName', cnh);
