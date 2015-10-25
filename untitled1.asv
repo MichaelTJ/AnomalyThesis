@@ -1052,8 +1052,9 @@ function axes_ButtonDownFcn(hObject, eventdata, handles,...
 loc
 axes(handles.axesMain)
 %set axes Main to numeric rows and cols
-s = 20
-scatter(cell2mat(numCols(:,loc(1))),cell2mat(numCols(:,loc(2))),s,...
+s = 10
+c = linspace(1
+scatter(cell2mat(numCols(:,loc(1))),cell2mat(numCols(:,loc(2))),...
     categorical(combCats))
 guidata(hObject,handles)
 

@@ -22,7 +22,7 @@ function varargout = EditSets(varargin)
 
 % Edit the above text to modify the response to help EditSets
 
-% Last Modified by GUIDE v2.5 27-Aug-2015 12:13:09
+% Last Modified by GUIDE v2.5 25-Oct-2015 10:42:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -56,7 +56,7 @@ function EditSets_OpeningFcn(hObject, eventdata, handles, varargin)
 
 %handles.uitableUniques = handles.columnsListBox;
 
-
+%parentHandles = varargin{3}
 
 % Update handles structure
 guidata(hObject, handles);
@@ -282,3 +282,67 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
+
+
+% --- Executes when selected cell(s) is changed in uitableCols.
+function uitableCols_CellSelectionCallback(hObject, eventdata, handles)
+% hObject    handle to uitableCols (see GCBO)
+% eventdata  structure with the following fields (see UITABLE)
+%	Indices: row and column indices of the cell(s) currently selecteds
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes when entered data in editable cell(s) in uitableCols.
+function uitableCols_CellEditCallback(hObject, eventdata, handles)
+% hObject    handle to uitableSubsets (see GCBO)
+% eventdata  structure with the following fields (see UITABLE)
+%	Indices: row and column indices of the cell(s) edited
+%	PreviousData: previous data for the cell(s) edited
+%	EditData: string(s) entered by the user
+%	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
+%	Error: error string when failed to convert EditData to appropriate value for Data
+% handles    structure with handles and user data (see GUIDATA)
+trueInd = eventdata.Indices - [0 1];
+%subCategory = get(handles.uitableSubsets,'data');
+%gets the value related to the checkbox
+%subCategory = subCategory(trueInd(1))
+%get the gui related to the table
+ h = findobj('Tag','uitable2');
+ % if exists (not empty)
+ if ~isempty(h)
+    % get copy of original gui data
+    g1data = guidata(h);
+        
+    %find the selected orig guidata column
+    selectedCol = get(handles.listboxColNames,'Value');
+    
+    %change subsets to edited subsets
+    g1data.subsets{selectedCol} = get(handles.uitableSubsets,'data');
+    
+    %set edited copy as guidata
+    guidata(h,g1data);
+    %update handles
+    guidata(hObject,handles);
+ end
+
+
+% --- Executes during object creation, after setting all properties.
+function uitableCols_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to uitableCols (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+%{
+contents = cellstr(get(hObject,'String'));
+selected = get(hObject,'Value');
+%get the gui related to the table
+ h = findobj('Tag','uitable2');
+ % if exists (not empty)
+ if ~isempty(h)
+    % set g1data to the gui data
+    g1data = guidata(h);
+    %get the data from the original gui table
+    raw = g1data.subsets;
+    raw{selected};
+    set(handles.uitableSubsets,'data',raw{selected});
+ end
+%}

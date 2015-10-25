@@ -91,7 +91,7 @@ while any(find(~nextSet))
     toAnalysis = cell(size(data,2),0);
             %if curDim == size(data,2)
     colNums = [];
-    %nextSet = maxNums
+    nextSet = maxNums
     for k=1:dataSize
         %if maxNums(1,k)~=0
         if nextSet(1,k)~=0
@@ -103,7 +103,11 @@ while any(find(~nextSet))
     [clusters, counts, numColsIndx, catColsIndx, Summary, Anomalies]...
         = analyzeAll(toAnalysis);
     for k=1:size(Anomalies,2)
-        handles.allAnoms(end+1) = struct('cols',colNums,'Anom',Anomalies(k));
+        if isempty(handles.allAnoms(1).cols)
+            handles.allAnoms(end) = struct('cols',colNums,'Anom',Anomalies(k));
+        else 
+            handles.allAnoms(end+1) = struct('cols',colNums,'Anom',Anomalies(k));
+        end
     end
     %{
     if ~isempty(numColsIndx)
@@ -127,15 +131,15 @@ save('redditAnoms')
 temp = [handles.allAnoms.Anom];
 allRows = {temp.rows}';
 
-for i=1:size(allRows,1)
+parfor i=1:size(allRows,1)
     allRows{i} = mat2str(allRows{i});
 end
 
 
 allCols = {handles.allAnoms.cols}';
 %remove first empty element
-allCols(1,:)=[];
-for i=1:size(allCols,1)
+%allCols(1,:)=[];
+parfor i=1:size(allCols,1)
     allCols{i} = mat2str(allCols{i});
 end
 
