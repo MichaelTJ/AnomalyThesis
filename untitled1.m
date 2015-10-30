@@ -127,6 +127,12 @@ handles.runCols = num2cell(logical(ones(sizeData(2),1)));
 
 
 
+anomStruct = struct('rows',[],...
+    'catSet',[],'catProp',[],'catMean',[],'catStd',[],...
+    'numSet',[],'numProp',[],'numMean',[],'numStd',[],...
+    'clusterNum',[],'clusters',{},'LOF',[],...
+    'anomType',{});
+handles.allAnoms = struct('cols',[],'Anom',[])
 
 
 
@@ -533,14 +539,59 @@ yColNum = get(handles.popupY,'value');
 %get raw cell data from uitable
 plotData = get(handles.uitable2,'Data');
 
-rawX = cell2mat(plotData(:,xColNum));
-rawY = cell2mat(plotData(:,yColNum));
-   
+%rawX = cell2mat(plotData(:,get(handles.popupX,'Value')));
 
+%rawY = cell2mat(plotData(:,get(handles.popupX,'Value')));
+
+anomRows = ones(size(plotData(:,get(handles.popupX,'Value'))));
 
 %get error std deviation and mean
-[points,xData,yData] = selectdata('axes',handles.axesMain);
+[rows,xData,yData] = selectdata('axes',handles.axesMain);
 
+%prepare to update Anom table
+%set returned rows to 0
+anomRows(rows) = 0;
+
+cols = [get(handles.popupX,'Value') get(handles.popupY,'Value')]
+anomStruct = struct('rows',find(anomRows)',...
+    'catSet',[],'catProp',[],'catMean',[],'catStd',[],...
+    'numSet',[],'numProp',[],'numMean',[],'numStd',[],...
+    'clusterNum',1,'clusters',{{}},'LOF',{'Unknown'},...
+    'anomType',{'cluster'});
+if isempty(handles.allAnoms(1).cols)
+    handles.allAnoms(end) = struct('cols',cols,'Anom',anomStruct)
+else
+    handles.allAnoms(end+1) = struct('cols',cols,'Anom',anomStruct)
+end
+allRows = {mat2str(find(anomRows)')};
+allCols = cell(size(allRows));
+allDevs = cell(size(allRows));
+allAccept = cell(size(allRows));
+allAccept = cell(size(allRows));
+allContext = cell(size(allRows));
+cols = mat2str(cols);
+
+for i=1:size(allCols,1)
+    allCols{i,1} = cols
+    allDevs{i,1} = [0]
+    allAccept{i,1} = [1]
+    allIgnore{i,1} = [0]
+    allContext{i,1} = 'cluster'
+end
+curAnomTable = get(handles.uitableAnomList,'data')
+if isempty(curAnomTable{1,1})
+    set(handles.uitableAnomList,...
+        'data',[allRows,allCols,allDevs,allAccept,allIgnore,allContext])
+else
+    curAnomTable(end+1,:) = ...
+        [allRows,allCols,allDevs,allAccept,allIgnore,allContext]
+    set(handles.uitableAnomList,...
+        'data',curAnomTable)
+    
+end
+guidata(hObject,handles)
+    
+%{
 if iscell(yData)
     meann = mean(cell2mat(yData))
     stdd = std(cell2mat(yData)) 
@@ -563,6 +614,7 @@ for i = 1:length(I)
     end
 end
 hold off
+%}
 
 % --- Executes during object creation, after setting all properties.
 function uitableAnomList_CreateFcn(hObject, eventdata, handles)
@@ -684,7 +736,7 @@ if any(index)             %loop necessary to surpress unimportant errors.
         combCats{i} = strjoin(catCols(i,:));
     end
     
-    setAxesAnomND(hObject, eventdata, handles,numCols,combCats,temp.rows(1))
+    setAxesAnomND(hObject, eventdata, handles,numCols,combCats,temp.rows)
 
 end
 
@@ -917,6 +969,8 @@ function saveAnalysisBut_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+%asdfsadf
+
 
 % --- Executes on button press in runAllButton.
 function runAllButton_Callback(hObject, eventdata, handles)
@@ -1014,31 +1068,99 @@ combCats = cell(size(catCols,1),1);
 parfor i=1:size(data,1)
     combCats{i} = strjoin(catCols(i,:));
 end
-guidata(hObject,handles);
-[h, ax, bigax] = gplotmatrix(cell2mat(numCols),[],combCats,...
-    [],'o',[],'on','')
-%.o+*xsd^v><ph
+figure()
 
-%{
-h is an array of handles to the lines on the graphs. 
-The array's third dimension corresponds to groups in the input 
-argument group. 
-ax is a matrix of handles to the axes of the 
-individual plots. 
-If dispopt is 'hist', 'stairs', or 'grpbars', 
-ax contains one extra row of handles to invisible axes in which
-the histograms are plotted. 
-bigax is a handle to big (invisible) axes framing the entire plot matrix.
-bigax is fixed to point to the current axes, so a subsequent title, 
-xlabel, or ylabel command will produce labels that are centered 
-with respect to the entire plot matrix.
-%}
-for i=1:size(ax,1)
-    for j=1:size(ax,2)
-        set(ax(i,j),'ButtonDownFcn',{@axes_ButtonDownFcn,handles,...
-            [i,j],numCols,combCats})
+guidata(hObject,handles);
+%gplotmatrix(x,y,group,clr,sym,siz,doleg,dispopt,xnam,ynam)
+names = regexprep(get(handles.uitable2,'ColumnName'),'<.*?>','')
+names = names(cell2mat(handles.runCols))
+numNames = names(numColsIndx);
+colNames = names(catColsIndx);
+if ~isempty(numNames)
+    [h, ax, bigax] = gplotmatrix(cell2mat(numCols),[],combCats,...
+        [],'o',[],'on','',numNames,numNames)
+    %.o+*xsd^v><ph
+    
+
+    %{
+    h is an array of handles to the lines on the graphs. 
+    The array's third dimension corresponds to groups in the input 
+    argument group. 
+    ax is a matrix of handles to the axes of the 
+    individual plots. 
+    If dispopt is 'hist', 'stairs', or 'grpbars', 
+    ax contains one extra row of handles to invisible axes in which
+    the histograms are plotted. 
+    bigax is a handle to big (invisible) axes framing the entire plot matrix.
+    bigax is fixed to point to the current axes, so a subsequent title, 
+    xlabel, or ylabel command will produce labels that are centered 
+    with respect to the entire plot matrix.
+    %}
+    for i=1:size(ax,1)
+        for j=1:size(ax,2)
+            set(ax(i,j),'ButtonDownFcn',{@axes_ButtonDownFcn,handles,...
+                [i,j],numCols,combCats})
+        end
     end
 end
+%need a cell array, each cell holding a matrix containing
+%the count of each unique element for each variable
+uniqCounts = cell(1,size(catCols,2))
+uniqLias = zeros(size(catCols))
+colorMapGrid = zeros(size(catCols))
+curMax = 0;
+for i=1:size(catCols,2)
+    [uniqs, ~, uniqLias(:,i)] = unique(catCols(:,i));
+    %uniqCounts for this column = empty array
+    uniqCounts{1,i} = [];
+    for j=1:size(uniqs,1)
+        uniqCounts{1,i} = [uniqCounts{1,i} sum(uniqLias(:,i) == j)];
+    end
+    
+    if size(uniqs,1)>curMax
+        curMax = size(uniqs,1);
+    end
+end
+
+%for every group of uniqs
+for i=1:size(uniqCounts,2)
+    %sort it
+    [b,index] = sort(uniqCounts{1,i},'descend');
+    b = cumsum(b);
+    %add 1 at the start, remove last element
+    b = [1 b(1:end-1)];
+    b(index) = b;
+    b = curMax -b
+    for j=1:size(uniqCounts{1,i},2)
+        a = find(uniqLias(:,i)==j);
+        uniqLias(a,i) = b(j);
+    end
+    
+    
+end
+
+catViewAll(hObject,eventdata,handles,uniqLias,catCols,...
+    colNames)
+
+
+%check variable names for bad chars
+A = isstrprop(colNames,'alphanum')
+for k=1:numel(A)
+    %if a value is not alpha numeric, set it to space
+    colNames{k}(find(A{k} == 0)) = '_'
+    if length(colNames{k}) > namelengthmax
+        colNames{k} = colNames{k}(1:namelengthmax)
+    end
+end
+
+%highest number = curMax
+
+
+%
+%need to split the uniqCounts Columns into 
+
+
+%tableData = cell2table(catCols,'VariableNames',colNames)
 
      %{   
 h
@@ -1050,10 +1172,14 @@ function axes_ButtonDownFcn(hObject, eventdata, handles,...
     loc, numCols,combCats)
 %set axesMain to hObject
 loc
+handles.dataLoc = loc;
+guidata(hObject,handles)
 axes(handles.axesMain)
+set(handles.popupX,'Value',handles.dataColsList(loc(1)))
+set(handles.popupY,'Value',handles.dataColsList(loc(2)))
 %set axes Main to numeric rows and cols
-s = 20
-scatter(cell2mat(numCols(:,loc(1))),cell2mat(numCols(:,loc(2))),s,...
+%handles.dataLoc = loc;
+scatter(cell2mat(numCols(:,loc(1))),cell2mat(numCols(:,loc(2))),[],...
     categorical(combCats))
 guidata(hObject,handles)
 
